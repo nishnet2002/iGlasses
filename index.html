@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glasses Distance Poster Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="panel">
+        <h1>Distance Poster Viewer</h1>
+        <p class="subtitle">3D poster simulation with configurable virtual glasses</p>
+
+        <section class="control-group">
+          <h2>Distance</h2>
+          <label for="distanceRange">Poster distance</label>
+          <input id="distanceRange" type="range" min="0.3048" max="20" step="0.01" value="3" />
+          <div id="distanceValue" class="value-row"></div>
+        </section>
+
+        <section class="control-group">
+          <h2>Glasses</h2>
+          <label class="inline-toggle">
+            <input id="glassesEnabled" type="checkbox" checked />
+            Show glasses filter
+          </label>
+          <label for="activeLens">Active lens</label>
+          <select id="activeLens">
+            <option value="left">Left lens</option>
+            <option value="right">Right lens</option>
+          </select>
+
+          <label for="sph">SPH</label>
+          <input id="sph" type="range" min="-10" max="10" step="0.25" value="-0.25" />
+          <div id="sphValue" class="value-row"></div>
+
+          <label for="cyl">CYL</label>
+          <input id="cyl" type="range" min="-6" max="6" step="0.25" value="-3.25" />
+          <div id="cylValue" class="value-row"></div>
+
+          <label for="axis">Axis</label>
+          <input id="axis" type="range" min="0" max="180" step="1" value="25" />
+          <div id="axisValue" class="value-row"></div>
+        </section>
+
+        <section class="control-group">
+          <h2>Poster</h2>
+          <label for="posterType">Poster type</label>
+          <select id="posterType">
+            <option value="snellen">Snellen Chart</option>
+            <option value="balloon">Classic Hot Air Balloon</option>
+            <option value="hLines">Horizontal Lines</option>
+            <option value="vLines">Vertical Lines</option>
+          </select>
+          <p class="hint">Poster size fixed to 1m × 5m</p>
+        </section>
+
+        <section class="control-group">
+          <h2>Lighting & Room</h2>
+          <label for="lightingPreset">View preset</label>
+          <select id="lightingPreset">
+            <option value="optometrist">Optometrist View (Default)</option>
+            <option value="warmRoom">Warm Room</option>
+            <option value="coolOffice">Cool Office</option>
+            <option value="dimExam">Dim Exam Room</option>
+          </select>
+        </section>
+      </aside>
+
+      <main class="viewport-wrap">
+        <div id="viewport"></div>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
