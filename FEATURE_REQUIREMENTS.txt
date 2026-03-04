@@ -1,0 +1,21 @@
+Delta Requirements (Follow-up Only)
+
+1) Add settings panel toggle
+- Left settings panel must be collapsible/expandable.
+
+2) Glasses overlay-based filtering
+- Show glasses overlay in the viewport.
+- Apply filtering through lens regions only (not full-screen filtering).
+
+3) Mouse interactions for poster
+- Move poster using mouse drag.
+- Zoom in/out using mouse drag gesture.
+
+4) Move lens controls to overlay HUD
+- SPH, CYL, and Axis controls should be in the viewport overlay.
+
+5) Thematic UI direction
+- Prefer gaming-like native 3D UI styling where practical.
+
+6) Added UX indicator
+- Show drag mode legend/status (Idle / Move / Zoom).

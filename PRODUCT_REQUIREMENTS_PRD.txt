@@ -1,0 +1,103 @@
+Product Requirements Document (PRD)
+Project: Glasses Distance Poster Viewer
+Date: 2026-03-04
+
+1. Product Overview
+- Build an interactive 3D viewer where a user observes a distant poster through configurable virtual glasses.
+- Glasses behavior is a rendering/filter simulation over the scene, not physical optics hardware.
+- Primary use case is visual comparison of direct view vs lens-affected view at different distances and lighting conditions.
+
+2. Goals
+- Provide a realistic-feeling distance poster viewing environment.
+- Allow per-lens prescription-style controls (SPH, CYL, Axis).
+- Allow quick switching among clinically useful and pattern-based posters.
+- Enable real-time interaction for movement, zooming, and environment changes.
+
+3. Out of Scope
+- Medical-grade or physically accurate optical diagnostics.
+- Storage/sync of patient data.
+- Multi-user collaboration.
+- Native desktop/mobile binaries (web runtime only for current scope).
+
+4. Functional Requirements
+4.1 Distance Control
+- User can set poster viewing distance from 1 ft to 20 m.
+- Distance changes must update the 3D scene in real time.
+- UI should show distance in meters and feet.
+
+4.2 Glasses Enable/Disable
+- User can toggle glasses simulation on/off.
+- Off state should show direct, unfiltered scene.
+
+4.3 Per-Lens Configuration
+- User can choose lens side: Left or Right.
+- For selected lens, user can configure:
+  - SPH
+  - CYL (cylinder)
+  - Axis
+- Left and Right lens values are independent.
+
+4.4 Poster Presets
+- User can switch poster type at runtime.
+- Default poster options include:
+  - Snellen chart
+  - Classic hot air balloon
+  - Horizontal lines
+  - Vertical lines
+
+4.5 Poster Geometry
+- Poster size is fixed at Height 1 m × Width 5 m.
+
+4.6 Lighting and Room Aesthetics
+- User can switch lighting/environment presets.
+- Default preset is Optometrist View.
+- Additional presets should represent varied color temperature/room ambiance.
+
+5. UX and Interaction Requirements (Follow-up Delta)
+5.1 Settings Panel Toggle
+- Left settings panel must be collapsible and expandable.
+
+5.2 Glasses Overlay Rendering
+- Glasses frame must be visible as an on-screen overlay.
+- Filtering must occur through lens regions only.
+- Areas outside lenses should not use lens filter behavior.
+
+5.3 Poster Mouse Interaction
+- User can move poster with mouse drag interaction.
+- User can zoom in/out using drag gesture (e.g., modified drag/right-drag).
+
+5.4 HUD Lens Controls
+- SPH/CYL/Axis controls should be available in an in-view overlay HUD.
+- Lens side selection should be available in the same overlay area.
+
+5.5 Visual Theme Direction
+- Prefer gaming-inspired, native 3D-style thematic UI treatment.
+
+5.6 Drag Status Indicator
+- Show drag mode/status indicator in viewport:
+  - Idle
+  - Move
+  - Zoom
+
+6. Non-Functional Requirements
+- Real-time interaction should feel responsive during slider and drag operations.
+- Rendering should be stable on modern desktop browsers.
+- UI should remain usable across common laptop/desktop viewport sizes.
+- Feature set should run as static web assets (no backend dependency required).
+
+7. Deployment and Runtime Requirements
+- App must run locally via static file serving.
+- Project should be deployable via GitHub Pages using repository workflow.
+
+8. Acceptance Criteria (High-Level)
+- User can change distance from 1 ft to 20 m and observe immediate scene update.
+- User can toggle glasses effect and compare direct vs filtered views.
+- User can set left and right SPH/CYL/Axis independently.
+- User can switch among all required poster presets.
+- Poster remains fixed at 1 m × 5 m dimensions.
+- User can change lighting presets, with Optometrist View as default.
+- User can collapse/expand settings panel.
+- Glasses overlay is visible and filtering is lens-scoped.
+- User can drag to move poster and drag-modify to zoom.
+- HUD contains lens controls and updates active lens values.
+- Drag mode indicator updates correctly for Idle/Move/Zoom states.

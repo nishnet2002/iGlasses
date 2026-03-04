@@ -3,6 +3,10 @@ import * as THREE from "https://unpkg.com/three@0.164.1/build/three.module.js";
 const viewport = document.getElementById("viewport");
 
 const ui = {
+  appShell: document.getElementById("appShell"),
+  panelToggle: document.getElementById("panelToggle"),
+  glassesOverlay: document.getElementById("glassesOverlay"),
+  dragMode: document.getElementById("dragMode"),
   distanceRange: document.getElementById("distanceRange"),
   distanceValue: document.getElementById("distanceValue"),
   glassesEnabled: document.getElementById("glassesEnabled"),
@@ -21,12 +25,14 @@ const appState = {
   distanceM: Number(ui.distanceRange.value),
   glassesEnabled: true,
   activeLens: "left",
+  panelCollapsed: false,
   lens: {
     left: { sph: -0.25, cyl: -3.25, axis: 25 },
     right: { sph: -0.25, cyl: -3.25, axis: 25 }
   },
   posterType: "snellen",
-  lightingPreset: "optometrist"
+  lightingPreset: "optometrist",
+  posterPosition: { x: 0, y: 1.6 }
 };
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -62,7 +68,6 @@ const posterMaterial = new THREE.MeshStandardMaterial({
   metalness: 0.02
 });
 const poster = new THREE.Mesh(new THREE.PlaneGeometry(5, 1), posterMaterial);
-poster.position.set(0, 1.6, -appState.distanceM);
 scene.add(poster);
 
 const supportBar = new THREE.Mesh(
@@ -70,12 +75,13 @@ const supportBar = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ color: "#445166", roughness: 0.7 })
 );
 supportBar.rotation.z = Math.PI / 2;
-supportBar.position.set(0, 2.2, -appState.distanceM - 0.03);
 scene.add(supportBar);
 
-const lensCenters = {
-  left: new THREE.Vector2(0.25, 0.5),
-  right: new THREE.Vector2(0.75, 0.5)
+const lensShape = {
+  left: new THREE.Vector2(0.32, 0.52),
+  right: new THREE.Vector2(0.68, 0.52),
+  radius: 0.22,
+  edgeSoftness: 0.02
 };
 
 const offscreen = new THREE.WebGLRenderTarget(1, 1, {
@@ -94,8 +100,10 @@ const postMaterial = new THREE.ShaderMaterial({
     glassesEnabled: { value: 1 },
     leftLens: { value: new THREE.Vector3(-0.25, -3.25, 25) },
     rightLens: { value: new THREE.Vector3(-0.25, -3.25, 25) },
-    leftCenter: { value: lensCenters.left },
-    rightCenter: { value: lensCenters.right },
+    leftCenter: { value: lensShape.left },
+    rightCenter: { value: lensShape.right },
+    lensRadius: { value: lensShape.radius },
+    lensEdge: { value: lensShape.edgeSoftness },
     resolution: { value: new THREE.Vector2(1, 1) }
   },
   vertexShader: `
@@ -112,6 +120,8 @@ const postMaterial = new THREE.ShaderMaterial({
     uniform vec3 rightLens;
     uniform vec2 leftCenter;
     uniform vec2 rightCenter;
+    uniform float lensRadius;
+    uniform float lensEdge;
     uniform vec2 resolution;
 
     varying vec2 vUv;
@@ -121,6 +131,13 @@ const postMaterial = new THREE.ShaderMaterial({
       float r2 = dot(d, d);
       float k = sph * 0.04;
       return uv + d * r2 * k;
+    }
+
+    float lensMask(vec2 uv, vec2 center) {
+      vec2 d = uv - center;
+      d.x *= (resolution.x / resolution.y);
+      float dist = length(d);
+      return 1.0 - smoothstep(lensRadius, lensRadius + lensEdge, dist);
     }
 
     vec3 sampleAnisotropicBlur(vec2 uv, vec3 lens) {
@@ -135,7 +152,6 @@ const postMaterial = new THREE.ShaderMaterial({
       float anisoRadius = clamp((cylPower * 0.003), 0.0, 0.024);
 
       vec2 dir = vec2(cos(axis), sin(axis));
-      vec2 px = 1.0 / resolution;
 
       vec3 base = texture2D(tScene, uv).rgb * 0.26;
 
@@ -160,18 +176,27 @@ const postMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
+      vec3 original = texture2D(tScene, vUv).rgb;
+
       if (glassesEnabled == 0) {
-        gl_FragColor = texture2D(tScene, vUv);
+        gl_FragColor = vec4(original, 1.0);
         return;
       }
 
-      bool isLeft = vUv.x <= 0.5;
-      vec3 lens = isLeft ? leftLens : rightLens;
-      vec2 center = isLeft ? leftCenter : rightCenter;
+      float leftMask = lensMask(vUv, leftCenter);
+      float rightMask = lensMask(vUv, rightCenter);
+      float inLens = max(leftMask, rightMask);
 
-      vec2 warpedUv = lensDistort(vUv, center, lens.x);
-      vec3 col = sampleAnisotropicBlur(warpedUv, lens);
-      gl_FragColor = vec4(col, 1.0);
+      vec3 lensDef = leftMask >= rightMask ? leftLens : rightLens;
+      vec2 center = leftMask >= rightMask ? leftCenter : rightCenter;
+
+      vec2 warpedUv = lensDistort(vUv, center, lensDef.x);
+      vec3 filtered = sampleAnisotropicBlur(warpedUv, lensDef);
+
+      vec3 frameTint = original * 0.44;
+      vec3 finalColor = mix(frameTint, filtered, inLens);
+
+      gl_FragColor = vec4(finalColor, 1.0);
     }
   `
 });
@@ -183,6 +208,21 @@ const posterCanvas = document.createElement("canvas");
 posterCanvas.width = 2400;
 posterCanvas.height = 480;
 const posterCtx = posterCanvas.getContext("2d");
+
+const raycaster = new THREE.Raycaster();
+const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const pointer = new THREE.Vector2();
+const dragState = {
+  active: false,
+  mode: "move",
+  offset: new THREE.Vector3(),
+  startY: 0,
+  startDistance: appState.distanceM
+};
+
+function setDragModeLabel(mode) {
+  ui.dragMode.textContent = mode;
+}
 
 function drawSnellen() {
   const ctx = posterCtx;
@@ -344,9 +384,10 @@ function applyLightingPreset(name) {
   }
 }
 
-function updateDistance() {
-  poster.position.z = -appState.distanceM;
-  supportBar.position.z = -appState.distanceM - 0.03;
+function updatePosterTransform() {
+  const z = -appState.distanceM;
+  poster.position.set(appState.posterPosition.x, appState.posterPosition.y, z);
+  supportBar.position.set(appState.posterPosition.x, appState.posterPosition.y + 0.6, z - 0.03);
 
   const distanceFt = appState.distanceM * 3.28084;
   ui.distanceValue.textContent = `${appState.distanceM.toFixed(2)} m (${distanceFt.toFixed(2)} ft)`;
@@ -370,15 +411,99 @@ function updateLensText() {
 function syncLensToShader() {
   const left = appState.lens.left;
   const right = appState.lens.right;
+
   postMaterial.uniforms.leftLens.value.set(left.sph, left.cyl, left.axis);
   postMaterial.uniforms.rightLens.value.set(right.sph, right.cyl, right.axis);
   postMaterial.uniforms.glassesEnabled.value = appState.glassesEnabled ? 1 : 0;
+
+  document.body.classList.toggle("glasses-hidden", !appState.glassesEnabled);
+}
+
+function setPointerFromEvent(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function intersectPosterPlane(event) {
+  setPointerFromEvent(event);
+  raycaster.setFromCamera(pointer, camera);
+  dragPlane.constant = appState.distanceM;
+  const hit = new THREE.Vector3();
+  const didHit = raycaster.ray.intersectPlane(dragPlane, hit);
+  return didHit ? hit : null;
+}
+
+function startPosterDrag(event) {
+  if (event.button !== 0 && event.button !== 2) {
+    return;
+  }
+
+  const zoomMode = event.button === 2 || event.shiftKey;
+  if (zoomMode) {
+    dragState.active = true;
+    dragState.mode = "zoom";
+    dragState.startY = event.clientY;
+    dragState.startDistance = appState.distanceM;
+    renderer.domElement.style.cursor = "ns-resize";
+    setDragModeLabel("Zoom");
+    return;
+  }
+
+  const hit = intersectPosterPlane(event);
+  if (!hit) {
+    return;
+  }
+
+  dragState.active = true;
+  dragState.mode = "move";
+  dragState.offset.set(
+    hit.x - appState.posterPosition.x,
+    hit.y - appState.posterPosition.y,
+    0
+  );
+  renderer.domElement.style.cursor = "grabbing";
+  setDragModeLabel("Move");
+}
+
+function onPosterDrag(event) {
+  if (!dragState.active) {
+    return;
+  }
+
+  if (dragState.mode === "zoom") {
+    const deltaY = event.clientY - dragState.startY;
+    appState.distanceM = THREE.MathUtils.clamp(dragState.startDistance + deltaY * 0.03, 0.3048, 20);
+    ui.distanceRange.value = String(appState.distanceM);
+    updatePosterTransform();
+    return;
+  }
+
+  const hit = intersectPosterPlane(event);
+  if (!hit) {
+    return;
+  }
+
+  appState.posterPosition.x = THREE.MathUtils.clamp(hit.x - dragState.offset.x, -4.8, 4.8);
+  appState.posterPosition.y = THREE.MathUtils.clamp(hit.y - dragState.offset.y, 0.75, 3.8);
+  updatePosterTransform();
+}
+
+function endPosterDrag() {
+  dragState.active = false;
+  renderer.domElement.style.cursor = "grab";
+  setDragModeLabel("Idle");
 }
 
 function bindUi() {
+  ui.panelToggle.addEventListener("click", () => {
+    appState.panelCollapsed = !appState.panelCollapsed;
+    ui.appShell.classList.toggle("panel-collapsed", appState.panelCollapsed);
+  });
+
   ui.distanceRange.addEventListener("input", () => {
     appState.distanceM = Number(ui.distanceRange.value);
-    updateDistance();
+    updatePosterTransform();
   });
 
   ui.glassesEnabled.addEventListener("change", () => {
@@ -418,6 +543,15 @@ function bindUi() {
     appState.lightingPreset = ui.lightingPreset.value;
     applyLightingPreset(appState.lightingPreset);
   });
+
+  renderer.domElement.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
+
+  renderer.domElement.addEventListener("pointerdown", startPosterDrag);
+  window.addEventListener("pointermove", onPosterDrag);
+  window.addEventListener("pointerup", endPosterDrag);
+  window.addEventListener("pointercancel", endPosterDrag);
 }
 
 function resize() {
@@ -445,10 +579,12 @@ function animate() {
 bindUi();
 updatePosterTexture();
 applyLightingPreset(appState.lightingPreset);
-updateDistance();
+updatePosterTransform();
 updateLensControlsFromState();
 syncLensToShader();
 resize();
 animate();
 
+renderer.domElement.style.cursor = "grab";
+setDragModeLabel("Idle");
 window.addEventListener("resize", resize);
