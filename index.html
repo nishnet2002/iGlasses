@@ -7,58 +7,44 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="panel">
-        <h1>Distance Poster Viewer</h1>
-        <p class="subtitle">3D poster simulation with configurable virtual glasses</p>
+    <main class="viewport-wrap">
+      <div id="viewport"></div>
 
-        <section class="control-group">
-          <h2>Distance</h2>
-          <label for="distanceRange">Poster distance</label>
+      <header class="immersive-topbar">
+        <button id="drawerToggle" class="top-btn" type="button">Menu</button>
+      </header>
+
+      <aside id="immersiveDrawer" class="immersive-drawer">
+        <div class="drawer-header">
+          <h2>Scene Controls</h2>
+          <button id="drawerClose" class="drawer-close" type="button">✕</button>
+        </div>
+
+        <section class="drawer-group">
+          <label class="inline-toggle">
+            <input id="glassesEnabled" type="checkbox" checked />
+            Glasses filter enabled
+          </label>
+        </section>
+
+        <section class="drawer-group">
+          <label for="distanceRange">Distance</label>
           <input id="distanceRange" type="range" min="0.3048" max="20" step="0.01" value="3" />
           <div id="distanceValue" class="value-row"></div>
         </section>
 
-        <section class="control-group">
-          <h2>Glasses</h2>
-          <label class="inline-toggle">
-            <input id="glassesEnabled" type="checkbox" checked />
-            Show glasses filter
-          </label>
-          <label for="activeLens">Active lens</label>
-          <select id="activeLens">
-            <option value="left">Left lens</option>
-            <option value="right">Right lens</option>
-          </select>
-
-          <label for="sph">SPH</label>
-          <input id="sph" type="range" min="-10" max="10" step="0.25" value="-0.25" />
-          <div id="sphValue" class="value-row"></div>
-
-          <label for="cyl">CYL</label>
-          <input id="cyl" type="range" min="-6" max="6" step="0.25" value="-3.25" />
-          <div id="cylValue" class="value-row"></div>
-
-          <label for="axis">Axis</label>
-          <input id="axis" type="range" min="0" max="180" step="1" value="25" />
-          <div id="axisValue" class="value-row"></div>
-        </section>
-
-        <section class="control-group">
-          <h2>Poster</h2>
-          <label for="posterType">Poster type</label>
+        <section class="drawer-group">
+          <label for="posterType">Poster</label>
           <select id="posterType">
             <option value="snellen">Snellen Chart</option>
             <option value="balloon">Classic Hot Air Balloon</option>
             <option value="hLines">Horizontal Lines</option>
             <option value="vLines">Vertical Lines</option>
           </select>
-          <p class="hint">Poster size fixed to 1m × 5m</p>
         </section>
 
-        <section class="control-group">
-          <h2>Lighting & Room</h2>
-          <label for="lightingPreset">View preset</label>
+        <section class="drawer-group">
+          <label for="lightingPreset">Room</label>
           <select id="lightingPreset">
             <option value="optometrist">Optometrist View (Default)</option>
             <option value="warmRoom">Warm Room</option>
@@ -66,12 +52,62 @@
             <option value="dimExam">Dim Exam Room</option>
           </select>
         </section>
+
+        <section class="drawer-group help-group">
+          <h3>Controls Help</h3>
+          <p>Drag: move poster</p>
+          <p>Shift + Drag or Right-drag: zoom</p>
+          <p>Alt + click: fine lens adjustment</p>
+          <p>Drag axis dial: set angular axis</p>
+        </section>
       </aside>
 
-      <main class="viewport-wrap">
-        <div id="viewport"></div>
-      </main>
-    </div>
+      <div id="hudLeftCard" class="hud-float-card left">
+        <div class="card-title">Left Lens</div>
+        <div id="hudLeftSph" class="lens-line">SPH: -0.25</div>
+        <div id="hudLeftCyl" class="lens-line">CYL: -3.25</div>
+        <div id="hudLeftAxis" class="lens-line">AXIS: 25°</div>
+
+        <div class="lens-grid">
+          <button class="lens-step" data-lens="left" data-control="sph" data-step="0.25">SPH +</button>
+          <button class="lens-step" data-lens="left" data-control="sph" data-step="-0.25">SPH -</button>
+          <button class="lens-step" data-lens="left" data-control="cyl" data-step="0.25">CYL +</button>
+          <button class="lens-step" data-lens="left" data-control="cyl" data-step="-0.25">CYL -</button>
+        </div>
+
+        <div class="axis-block">
+          <div id="axisDialLeft" class="axis-dial" role="slider" aria-label="Left axis dial" aria-valuemin="0" aria-valuemax="180" aria-valuenow="25" tabindex="0">
+            <div id="axisDialHandLeft" class="axis-dial-hand"></div>
+            <div class="axis-core">AXIS</div>
+          </div>
+          <div id="axisValueLeft" class="axis-value">25°</div>
+        </div>
+      </div>
+
+      <div id="hudRightCard" class="hud-float-card right">
+        <div class="card-title">Right Lens</div>
+        <div id="hudRightSph" class="lens-line">SPH: -0.25</div>
+        <div id="hudRightCyl" class="lens-line">CYL: -3.25</div>
+        <div id="hudRightAxis" class="lens-line">AXIS: 25°</div>
+
+        <div class="lens-grid">
+          <button class="lens-step" data-lens="right" data-control="sph" data-step="0.25">SPH +</button>
+          <button class="lens-step" data-lens="right" data-control="sph" data-step="-0.25">SPH -</button>
+          <button class="lens-step" data-lens="right" data-control="cyl" data-step="0.25">CYL +</button>
+          <button class="lens-step" data-lens="right" data-control="cyl" data-step="-0.25">CYL -</button>
+        </div>
+
+        <div class="axis-block">
+          <div id="axisDialRight" class="axis-dial" role="slider" aria-label="Right axis dial" aria-valuemin="0" aria-valuemax="180" aria-valuenow="25" tabindex="0">
+            <div id="axisDialHandRight" class="axis-dial-hand"></div>
+            <div class="axis-core">AXIS</div>
+          </div>
+          <div id="axisValueRight" class="axis-value">25°</div>
+        </div>
+      </div>
+
+      <div id="hudDistanceChip" class="hud-distance-chip">3.00m / 9.84ft</div>
+    </main>
 
     <script type="module" src="./app.js"></script>
   </body>

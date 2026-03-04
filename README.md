@@ -4,16 +4,23 @@ A lightweight 3D web app that simulates viewing a distant poster through configu
 
 ## Features
 
+- Immersive-first single-screen UI (no separate classic page)
+- Floating **Left Lens** and **Right Lens** cards with direct controls:
+  - SPH +/-
+  - CYL +/-
+  - Radial AXIS dial (angular control)
 - Distance control from **1 ft** to **20 m**
-- Toggle glasses filter on/off (direct image vs filtered view)
-- Per-lens controls (Left/Right): **SPH**, **CYL**, **Axis**
-- Poster presets:
-  - Snellen Chart
-  - Classic Hot Air Balloon
-  - Horizontal Lines
-  - Vertical Lines
+- Glasses filter toggle (on/off)
+- Drawer menu for scene controls:
+  - Poster preset (Snellen, Hot Air Balloon, Horizontal Lines, Vertical Lines)
+  - Room preset (Optometrist, Warm Room, Cool Office, Dim Exam Room)
+- Mouse interactions:
+  - Drag to move poster
+  - Shift+Drag or Right-drag to zoom distance
+- Fine adjustment modifier:
+  - Hold **Alt** while clicking lens buttons for smaller step changes
 - Fixed poster dimensions: **1m × 5m**
-- Lighting/room presets with **Optometrist View** as default
+- Brightened lighting model for all room presets
 
 ## Run locally
 
@@ -35,6 +42,15 @@ Then open:
 - `http://localhost:5500`
 
 If port `5500` is busy, use another port (for example `5501`).
+
+### In-app controls
+
+- Open **Menu** for poster, room, filter toggle, and distance slider
+- Use left and right lens cards to adjust SPH/CYL directly
+- Drag each lens AXIS dial to set angular axis
+- Drag in viewport to move poster
+- Hold `Shift` and drag (or right-drag) to zoom distance
+- Hold `Alt` while pressing `SPH/CYL +/-` for finer control
 
 ## Deploy on GitHub Pages
 

@@ -3,16 +3,24 @@ import * as THREE from "https://unpkg.com/three@0.164.1/build/three.module.js";
 const viewport = document.getElementById("viewport");
 
 const ui = {
+  drawerToggle: document.getElementById("drawerToggle"),
+  drawerClose: document.getElementById("drawerClose"),
+  immersiveDrawer: document.getElementById("immersiveDrawer"),
+  lensStepButtons: Array.from(document.querySelectorAll(".lens-step")),
+  axisDialLeft: document.getElementById("axisDialLeft"),
+  axisDialRight: document.getElementById("axisDialRight"),
+  axisValueLeft: document.getElementById("axisValueLeft"),
+  axisValueRight: document.getElementById("axisValueRight"),
+  hudLeftSph: document.getElementById("hudLeftSph"),
+  hudLeftCyl: document.getElementById("hudLeftCyl"),
+  hudLeftAxis: document.getElementById("hudLeftAxis"),
+  hudRightSph: document.getElementById("hudRightSph"),
+  hudRightCyl: document.getElementById("hudRightCyl"),
+  hudRightAxis: document.getElementById("hudRightAxis"),
+  hudDistanceChip: document.getElementById("hudDistanceChip"),
   distanceRange: document.getElementById("distanceRange"),
   distanceValue: document.getElementById("distanceValue"),
   glassesEnabled: document.getElementById("glassesEnabled"),
-  activeLens: document.getElementById("activeLens"),
-  sph: document.getElementById("sph"),
-  sphValue: document.getElementById("sphValue"),
-  cyl: document.getElementById("cyl"),
-  cylValue: document.getElementById("cylValue"),
-  axis: document.getElementById("axis"),
-  axisValue: document.getElementById("axisValue"),
   posterType: document.getElementById("posterType"),
   lightingPreset: document.getElementById("lightingPreset")
 };
@@ -20,13 +28,14 @@ const ui = {
 const appState = {
   distanceM: Number(ui.distanceRange.value),
   glassesEnabled: true,
-  activeLens: "left",
+  drawerOpen: false,
   lens: {
     left: { sph: -0.25, cyl: -3.25, axis: 25 },
     right: { sph: -0.25, cyl: -3.25, axis: 25 }
   },
   posterType: "snellen",
-  lightingPreset: "optometrist"
+  lightingPreset: "optometrist",
+  posterPosition: { x: 0, y: 1.6 }
 };
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -35,23 +44,26 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 viewport.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#cfd6e2");
+scene.background = new THREE.Color("#dfe8f4");
 
 const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 80);
 camera.position.set(0, 1.6, 0);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.68);
 scene.add(ambientLight);
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.38);
 keyLight.position.set(2.5, 4, 2.5);
 scene.add(keyLight);
 
-const fillLight = new THREE.PointLight(0xcfe4ff, 0.25, 25);
+const fillLight = new THREE.PointLight(0xd5e8ff, 0.47, 25);
 fillLight.position.set(-3, 1.8, -2);
 scene.add(fillLight);
 
-const roomMaterial = new THREE.MeshStandardMaterial({ color: "#eef2f8", side: THREE.BackSide });
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdcecff, 0.58);
+scene.add(hemiLight);
+
+const roomMaterial = new THREE.MeshStandardMaterial({ color: "#f5f8fd", side: THREE.BackSide });
 const room = new THREE.Mesh(new THREE.BoxGeometry(18, 6, 28), roomMaterial);
 room.position.set(0, 2.4, -8);
 scene.add(room);
@@ -62,7 +74,6 @@ const posterMaterial = new THREE.MeshStandardMaterial({
   metalness: 0.02
 });
 const poster = new THREE.Mesh(new THREE.PlaneGeometry(5, 1), posterMaterial);
-poster.position.set(0, 1.6, -appState.distanceM);
 scene.add(poster);
 
 const supportBar = new THREE.Mesh(
@@ -70,13 +81,7 @@ const supportBar = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ color: "#445166", roughness: 0.7 })
 );
 supportBar.rotation.z = Math.PI / 2;
-supportBar.position.set(0, 2.2, -appState.distanceM - 0.03);
 scene.add(supportBar);
-
-const lensCenters = {
-  left: new THREE.Vector2(0.25, 0.5),
-  right: new THREE.Vector2(0.75, 0.5)
-};
 
 const offscreen = new THREE.WebGLRenderTarget(1, 1, {
   magFilter: THREE.LinearFilter,
@@ -94,8 +99,8 @@ const postMaterial = new THREE.ShaderMaterial({
     glassesEnabled: { value: 1 },
     leftLens: { value: new THREE.Vector3(-0.25, -3.25, 25) },
     rightLens: { value: new THREE.Vector3(-0.25, -3.25, 25) },
-    leftCenter: { value: lensCenters.left },
-    rightCenter: { value: lensCenters.right },
+    leftCenter: { value: new THREE.Vector2(0.32, 0.52) },
+    rightCenter: { value: new THREE.Vector2(0.68, 0.52) },
     resolution: { value: new THREE.Vector2(1, 1) }
   },
   vertexShader: `
@@ -135,7 +140,6 @@ const postMaterial = new THREE.ShaderMaterial({
       float anisoRadius = clamp((cylPower * 0.003), 0.0, 0.024);
 
       vec2 dir = vec2(cos(axis), sin(axis));
-      vec2 px = 1.0 / resolution;
 
       vec3 base = texture2D(tScene, uv).rgb * 0.26;
 
@@ -160,15 +164,16 @@ const postMaterial = new THREE.ShaderMaterial({
     }
 
     void main() {
+      vec3 original = texture2D(tScene, vUv).rgb;
+
       if (glassesEnabled == 0) {
-        gl_FragColor = texture2D(tScene, vUv);
+        gl_FragColor = vec4(original, 1.0);
         return;
       }
 
       bool isLeft = vUv.x <= 0.5;
       vec3 lens = isLeft ? leftLens : rightLens;
       vec2 center = isLeft ? leftCenter : rightCenter;
-
       vec2 warpedUv = lensDistort(vUv, center, lens.x);
       vec3 col = sampleAnisotropicBlur(warpedUv, lens);
       gl_FragColor = vec4(col, 1.0);
@@ -183,6 +188,22 @@ const posterCanvas = document.createElement("canvas");
 posterCanvas.width = 2400;
 posterCanvas.height = 480;
 const posterCtx = posterCanvas.getContext("2d");
+
+const raycaster = new THREE.Raycaster();
+const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const pointer = new THREE.Vector2();
+const dragState = {
+  active: false,
+  mode: "move",
+  offset: new THREE.Vector3(),
+  startY: 0,
+  startDistance: appState.distanceM
+};
+
+const axisDialState = {
+  active: false,
+  lensKey: "left"
+};
 
 function drawSnellen() {
   const ctx = posterCtx;
@@ -307,64 +328,89 @@ function updatePosterTexture() {
 function applyLightingPreset(name) {
   if (name === "optometrist") {
     ambientLight.color.set("#ffffff");
-    ambientLight.intensity = 0.45;
+    ambientLight.intensity = 0.68;
     keyLight.color.set("#ffffff");
-    keyLight.intensity = 1.15;
+    keyLight.intensity = 1.38;
     fillLight.color.set("#d5e8ff");
-    fillLight.intensity = 0.26;
-    roomMaterial.color.set("#edf2f8");
-    scene.background.set("#ced7e3");
+    fillLight.intensity = 0.47;
+    hemiLight.color.set("#ffffff");
+    hemiLight.groundColor.set("#dfecff");
+    hemiLight.intensity = 0.58;
+    roomMaterial.color.set("#f5f8fd");
+    scene.background.set("#dfe8f4");
   } else if (name === "warmRoom") {
-    ambientLight.color.set("#ffe6c2");
-    ambientLight.intensity = 0.35;
+    ambientLight.color.set("#ffe8c8");
+    ambientLight.intensity = 0.6;
     keyLight.color.set("#ffc176");
-    keyLight.intensity = 0.9;
+    keyLight.intensity = 1.17;
     fillLight.color.set("#ffdcb4");
-    fillLight.intensity = 0.2;
-    roomMaterial.color.set("#f4e6d7");
-    scene.background.set("#d9c8b8");
+    fillLight.intensity = 0.37;
+    hemiLight.color.set("#fff0dc");
+    hemiLight.groundColor.set("#ffe6cc");
+    hemiLight.intensity = 0.5;
+    roomMaterial.color.set("#fbf0e4");
+    scene.background.set("#eadbcd");
   } else if (name === "coolOffice") {
     ambientLight.color.set("#e2edff");
-    ambientLight.intensity = 0.4;
+    ambientLight.intensity = 0.62;
     keyLight.color.set("#b8d1ff");
-    keyLight.intensity = 1.0;
+    keyLight.intensity = 1.24;
     fillLight.color.set("#cde8ff");
-    fillLight.intensity = 0.28;
-    roomMaterial.color.set("#e9eff8");
-    scene.background.set("#c2d0df");
+    fillLight.intensity = 0.43;
+    hemiLight.color.set("#f1f7ff");
+    hemiLight.groundColor.set("#dceaff");
+    hemiLight.intensity = 0.52;
+    roomMaterial.color.set("#f1f5fb");
+    scene.background.set("#d3dfea");
   } else {
-    ambientLight.color.set("#cdd8e2");
-    ambientLight.intensity = 0.2;
+    ambientLight.color.set("#dbe5ef");
+    ambientLight.intensity = 0.5;
     keyLight.color.set("#f2fff2");
-    keyLight.intensity = 0.55;
-    fillLight.color.set("#adc8ff");
-    fillLight.intensity = 0.12;
-    roomMaterial.color.set("#dae0e8");
-    scene.background.set("#aeb8c6");
+    keyLight.intensity = 0.95;
+    fillLight.color.set("#bfd4ff");
+    fillLight.intensity = 0.32;
+    hemiLight.color.set("#f0f5fb");
+    hemiLight.groundColor.set("#d3deed");
+    hemiLight.intensity = 0.45;
+    roomMaterial.color.set("#e8edf4");
+    scene.background.set("#c8d1de");
   }
 }
 
-function updateDistance() {
-  poster.position.z = -appState.distanceM;
-  supportBar.position.z = -appState.distanceM - 0.03;
-
+function updateDistanceText() {
   const distanceFt = appState.distanceM * 3.28084;
+  const chipText = `${appState.distanceM.toFixed(2)}m / ${distanceFt.toFixed(2)}ft`;
   ui.distanceValue.textContent = `${appState.distanceM.toFixed(2)} m (${distanceFt.toFixed(2)} ft)`;
+  ui.hudDistanceChip.textContent = chipText;
 }
 
-function updateLensControlsFromState() {
-  const lens = appState.lens[appState.activeLens];
-  ui.sph.value = String(lens.sph);
-  ui.cyl.value = String(lens.cyl);
-  ui.axis.value = String(lens.axis);
-  updateLensText();
+function updatePosterTransform() {
+  const z = -appState.distanceM;
+  poster.position.set(appState.posterPosition.x, appState.posterPosition.y, z);
+  supportBar.position.set(appState.posterPosition.x, appState.posterPosition.y + 0.6, z - 0.03);
+  updateDistanceText();
 }
 
-function updateLensText() {
-  const lens = appState.lens[appState.activeLens];
-  ui.sphValue.textContent = `${appState.activeLens.toUpperCase()} SPH: ${lens.sph.toFixed(2)}`;
-  ui.cylValue.textContent = `${appState.activeLens.toUpperCase()} CYL: ${lens.cyl.toFixed(2)}`;
-  ui.axisValue.textContent = `${appState.activeLens.toUpperCase()} Axis: ${lens.axis.toFixed(0)}°`;
+function updateLensCards() {
+  const left = appState.lens.left;
+  const right = appState.lens.right;
+
+  ui.hudLeftSph.textContent = `SPH: ${left.sph.toFixed(2)}`;
+  ui.hudLeftCyl.textContent = `CYL: ${left.cyl.toFixed(2)}`;
+  ui.hudLeftAxis.textContent = `AXIS: ${left.axis.toFixed(0)}°`;
+
+  ui.hudRightSph.textContent = `SPH: ${right.sph.toFixed(2)}`;
+  ui.hudRightCyl.textContent = `CYL: ${right.cyl.toFixed(2)}`;
+  ui.hudRightAxis.textContent = `AXIS: ${right.axis.toFixed(0)}°`;
+
+  ui.axisValueLeft.textContent = `${left.axis.toFixed(0)}°`;
+  ui.axisValueRight.textContent = `${right.axis.toFixed(0)}°`;
+
+  ui.axisDialLeft.style.setProperty("--axis-deg", `${left.axis * 2}deg`);
+  ui.axisDialRight.style.setProperty("--axis-deg", `${right.axis * 2}deg`);
+
+  ui.axisDialLeft.setAttribute("aria-valuenow", `${left.axis.toFixed(0)}`);
+  ui.axisDialRight.setAttribute("aria-valuenow", `${right.axis.toFixed(0)}`);
 }
 
 function syncLensToShader() {
@@ -373,39 +419,139 @@ function syncLensToShader() {
   postMaterial.uniforms.leftLens.value.set(left.sph, left.cyl, left.axis);
   postMaterial.uniforms.rightLens.value.set(right.sph, right.cyl, right.axis);
   postMaterial.uniforms.glassesEnabled.value = appState.glassesEnabled ? 1 : 0;
+  updateLensCards();
+}
+
+function toggleDrawer(forceOpen) {
+  appState.drawerOpen = typeof forceOpen === "boolean" ? forceOpen : !appState.drawerOpen;
+  ui.immersiveDrawer.classList.toggle("open", appState.drawerOpen);
+}
+
+function setPointerFromEvent(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function intersectPosterPlane(event) {
+  setPointerFromEvent(event);
+  raycaster.setFromCamera(pointer, camera);
+  dragPlane.constant = appState.distanceM;
+  const hit = new THREE.Vector3();
+  const didHit = raycaster.ray.intersectPlane(dragPlane, hit);
+  return didHit ? hit : null;
+}
+
+function startPosterDrag(event) {
+  if (event.target.closest(".immersive-drawer, .immersive-topbar, .hud-float-card")) {
+    return;
+  }
+
+  if (event.button !== 0 && event.button !== 2) {
+    return;
+  }
+
+  const zoomMode = event.button === 2 || event.shiftKey;
+  if (zoomMode) {
+    dragState.active = true;
+    dragState.mode = "zoom";
+    dragState.startY = event.clientY;
+    dragState.startDistance = appState.distanceM;
+    renderer.domElement.style.cursor = "ns-resize";
+    return;
+  }
+
+  const hit = intersectPosterPlane(event);
+  if (!hit) {
+    return;
+  }
+
+  dragState.active = true;
+  dragState.mode = "move";
+  dragState.offset.set(hit.x - appState.posterPosition.x, hit.y - appState.posterPosition.y, 0);
+  renderer.domElement.style.cursor = "grabbing";
+}
+
+function onPosterDrag(event) {
+  if (!dragState.active) {
+    return;
+  }
+
+  if (dragState.mode === "zoom") {
+    const deltaY = event.clientY - dragState.startY;
+    appState.distanceM = THREE.MathUtils.clamp(dragState.startDistance + deltaY * 0.03, 0.3048, 20);
+    ui.distanceRange.value = String(appState.distanceM);
+    updatePosterTransform();
+    return;
+  }
+
+  const hit = intersectPosterPlane(event);
+  if (!hit) {
+    return;
+  }
+
+  appState.posterPosition.x = THREE.MathUtils.clamp(hit.x - dragState.offset.x, -4.8, 4.8);
+  appState.posterPosition.y = THREE.MathUtils.clamp(hit.y - dragState.offset.y, 0.7, 3.8);
+  updatePosterTransform();
+}
+
+function endPosterDrag() {
+  dragState.active = false;
+  renderer.domElement.style.cursor = "grab";
+}
+
+function adjustLens(lensKey, control, delta) {
+  const lens = appState.lens[lensKey];
+
+  if (control === "sph") {
+    lens.sph = THREE.MathUtils.clamp(lens.sph + delta, -10, 10);
+  } else if (control === "cyl") {
+    lens.cyl = THREE.MathUtils.clamp(lens.cyl + delta, -6, 6);
+  }
+
+  syncLensToShader();
+}
+
+function setAxisFromPointer(lensKey, clientX, clientY, dialEl) {
+  const rect = dialEl.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  const dx = clientX - centerX;
+  const dy = clientY - centerY;
+
+  let deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+  if (deg < 0) {
+    deg += 360;
+  }
+
+  const axis = Math.round(deg / 2);
+  appState.lens[lensKey].axis = THREE.MathUtils.clamp(axis, 0, 180);
+  syncLensToShader();
+}
+
+function bindAxisDial(dialElement, lensKey) {
+  dialElement.addEventListener("pointerdown", (event) => {
+    axisDialState.active = true;
+    axisDialState.lensKey = lensKey;
+    setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
+  });
+
+  dialElement.addEventListener("click", (event) => {
+    setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
+  });
 }
 
 function bindUi() {
+  ui.drawerToggle.addEventListener("click", () => toggleDrawer());
+  ui.drawerClose.addEventListener("click", () => toggleDrawer(false));
+
   ui.distanceRange.addEventListener("input", () => {
     appState.distanceM = Number(ui.distanceRange.value);
-    updateDistance();
+    updatePosterTransform();
   });
 
   ui.glassesEnabled.addEventListener("change", () => {
     appState.glassesEnabled = ui.glassesEnabled.checked;
-    syncLensToShader();
-  });
-
-  ui.activeLens.addEventListener("change", () => {
-    appState.activeLens = ui.activeLens.value;
-    updateLensControlsFromState();
-  });
-
-  ui.sph.addEventListener("input", () => {
-    appState.lens[appState.activeLens].sph = Number(ui.sph.value);
-    updateLensText();
-    syncLensToShader();
-  });
-
-  ui.cyl.addEventListener("input", () => {
-    appState.lens[appState.activeLens].cyl = Number(ui.cyl.value);
-    updateLensText();
-    syncLensToShader();
-  });
-
-  ui.axis.addEventListener("input", () => {
-    appState.lens[appState.activeLens].axis = Number(ui.axis.value);
-    updateLensText();
     syncLensToShader();
   });
 
@@ -417,6 +563,56 @@ function bindUi() {
   ui.lightingPreset.addEventListener("change", () => {
     appState.lightingPreset = ui.lightingPreset.value;
     applyLightingPreset(appState.lightingPreset);
+  });
+
+  renderer.domElement.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
+
+  renderer.domElement.addEventListener("pointerdown", startPosterDrag);
+  window.addEventListener("pointermove", onPosterDrag);
+  window.addEventListener("pointerup", endPosterDrag);
+  window.addEventListener("pointercancel", endPosterDrag);
+
+  ui.lensStepButtons.forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      const lensKey = btn.dataset.lens;
+      const control = btn.dataset.control;
+      const step = Number(btn.dataset.step);
+      const precisionStep = event.altKey ? step * 0.2 : step;
+      adjustLens(lensKey, control, precisionStep);
+    });
+  });
+
+  bindAxisDial(ui.axisDialLeft, "left");
+  bindAxisDial(ui.axisDialRight, "right");
+
+  window.addEventListener("pointermove", (event) => {
+    if (!axisDialState.active) {
+      return;
+    }
+
+    const dial = axisDialState.lensKey === "left" ? ui.axisDialLeft : ui.axisDialRight;
+    setAxisFromPointer(axisDialState.lensKey, event.clientX, event.clientY, dial);
+  });
+
+  window.addEventListener("pointerup", () => {
+    axisDialState.active = false;
+  });
+
+  window.addEventListener("pointerdown", (event) => {
+    const inDrawer = ui.immersiveDrawer.contains(event.target);
+    const inTopbar = event.target.closest(".immersive-topbar");
+
+    if (appState.drawerOpen && !inDrawer && !inTopbar) {
+      toggleDrawer(false);
+    }
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      toggleDrawer(false);
+    }
   });
 }
 
@@ -445,10 +641,10 @@ function animate() {
 bindUi();
 updatePosterTexture();
 applyLightingPreset(appState.lightingPreset);
-updateDistance();
-updateLensControlsFromState();
+updatePosterTransform();
 syncLensToShader();
 resize();
 animate();
 
+renderer.domElement.style.cursor = "grab";
 window.addEventListener("resize", resize);
