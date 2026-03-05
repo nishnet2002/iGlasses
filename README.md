@@ -1,4 +1,4 @@
-# Glasses Distance Poster Viewer
+# 👓 Glasses Distance Poster Viewer
 
 A lightweight 3D web app that simulates viewing a distant poster through configurable virtual glasses.
 
