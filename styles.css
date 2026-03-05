@@ -13,6 +13,35 @@ body {
   color: #d9ebff;
 }
 
+.mobile-screen-notice {
+  display: none;
+  min-height: 100vh;
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+  background: #060b12;
+}
+
+.mobile-screen-notice-card {
+  width: min(560px, 100%);
+  border: 1px solid rgba(157, 192, 225, 0.5);
+  border-radius: 12px;
+  background: rgba(9, 18, 32, 0.9);
+  padding: 20px;
+}
+
+.mobile-screen-notice-card h1 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  color: #e7f4ff;
+}
+
+.mobile-screen-notice-card p {
+  margin: 8px 0;
+  color: #dbeeff;
+  line-height: 1.45;
+}
+
 .viewport-wrap {
   position: relative;
   width: 100%;
@@ -287,5 +316,15 @@ select {
 
   .hud-distance-chip {
     bottom: 330px;
+  }
+}
+
+@media (max-width: 900px) {
+  .mobile-screen-notice {
+    display: flex;
+  }
+
+  .viewport-wrap {
+    display: none;
   }
 }
