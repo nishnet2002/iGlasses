@@ -6,6 +6,8 @@ const ui = {
   drawerToggle: document.getElementById("drawerToggle"),
   drawerClose: document.getElementById("drawerClose"),
   immersiveDrawer: document.getElementById("immersiveDrawer"),
+  shortcutOverlay: document.getElementById("shortcutOverlay"),
+  shortcutClose: document.getElementById("shortcutClose"),
   lensStepButtons: Array.from(document.querySelectorAll(".lens-step")),
   axisDialLeft: document.getElementById("axisDialLeft"),
   axisDialRight: document.getElementById("axisDialRight"),
@@ -29,6 +31,7 @@ const appState = {
   distanceM: Number(ui.distanceRange.value),
   glassesEnabled: true,
   drawerOpen: false,
+  shortcutOverlayOpen: false,
   lens: {
     left: { sph: -0.25, cyl: -3.25, axis: 25 },
     right: { sph: -0.25, cyl: -3.25, axis: 25 }
@@ -204,6 +207,26 @@ const axisDialState = {
   active: false,
   lensKey: "left"
 };
+
+// Animation state for smooth transitions
+const animationState = {
+  targetDistance: appState.distanceM,
+  animatingDistance: false,
+  distanceAnimationFrame: null
+};
+
+// Debounce utility
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 function drawSnellen() {
   const ctx = posterCtx;
@@ -382,6 +405,42 @@ function updateDistanceText() {
   const chipText = `${appState.distanceM.toFixed(2)}m / ${distanceFt.toFixed(2)}ft`;
   ui.distanceValue.textContent = `${appState.distanceM.toFixed(2)} m (${distanceFt.toFixed(2)} ft)`;
   ui.hudDistanceChip.textContent = chipText;
+  
+  // Add pulse animation to distance chip
+  ui.hudDistanceChip.style.animation = 'none';
+  requestAnimationFrame(() => {
+    ui.hudDistanceChip.style.animation = 'pulse 0.3s ease-out';
+  });
+}
+
+// Smooth distance animation
+function animateDistanceChange(targetDistance) {
+  if (animationState.distanceAnimationFrame) {
+    cancelAnimationFrame(animationState.distanceAnimationFrame);
+  }
+  
+  const startDistance = appState.distanceM;
+  const startTime = performance.now();
+  const duration = 300; // ms
+  
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Ease out cubic
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    
+    appState.distanceM = startDistance + (targetDistance - startDistance) * easeProgress;
+    updatePosterTransform();
+    
+    if (progress < 1) {
+      animationState.distanceAnimationFrame = requestAnimationFrame(animate);
+    } else {
+      animationState.distanceAnimationFrame = null;
+    }
+  }
+  
+  animationState.distanceAnimationFrame = requestAnimationFrame(animate);
 }
 
 function updatePosterTransform() {
@@ -395,22 +454,40 @@ function updateLensCards() {
   const left = appState.lens.left;
   const right = appState.lens.right;
 
-  ui.hudLeftSph.textContent = `SPH: ${left.sph.toFixed(2)}`;
-  ui.hudLeftCyl.textContent = `CYL: ${left.cyl.toFixed(2)}`;
-  ui.hudLeftAxis.textContent = `AXIS: ${left.axis.toFixed(0)}°`;
+  // Animate value changes with transitions
+  const updateWithTransition = (element, newText) => {
+    element.style.transition = 'opacity 0.15s ease-out';
+    element.style.opacity = '0.6';
+    setTimeout(() => {
+      element.textContent = newText;
+      element.style.opacity = '1';
+    }, 75);
+  };
 
-  ui.hudRightSph.textContent = `SPH: ${right.sph.toFixed(2)}`;
-  ui.hudRightCyl.textContent = `CYL: ${right.cyl.toFixed(2)}`;
-  ui.hudRightAxis.textContent = `AXIS: ${right.axis.toFixed(0)}°`;
+  updateWithTransition(ui.hudLeftSph, `SPH: ${left.sph.toFixed(2)}`);
+  updateWithTransition(ui.hudLeftCyl, `CYL: ${left.cyl.toFixed(2)}`);
+  updateWithTransition(ui.hudLeftAxis, `AXIS: ${left.axis.toFixed(0)}°`);
 
-  ui.axisValueLeft.textContent = `${left.axis.toFixed(0)}°`;
-  ui.axisValueRight.textContent = `${right.axis.toFixed(0)}°`;
+  updateWithTransition(ui.hudRightSph, `SPH: ${right.sph.toFixed(2)}`);
+  updateWithTransition(ui.hudRightCyl, `CYL: ${right.cyl.toFixed(2)}`);
+  updateWithTransition(ui.hudRightAxis, `AXIS: ${right.axis.toFixed(0)}°`);
+
+  updateWithTransition(ui.axisValueLeft, `${left.axis.toFixed(0)}°`);
+  updateWithTransition(ui.axisValueRight, `${right.axis.toFixed(0)}°`);
 
   ui.axisDialLeft.style.setProperty("--axis-deg", `${left.axis * 2}deg`);
   ui.axisDialRight.style.setProperty("--axis-deg", `${right.axis * 2}deg`);
 
   ui.axisDialLeft.setAttribute("aria-valuenow", `${left.axis.toFixed(0)}`);
   ui.axisDialRight.setAttribute("aria-valuenow", `${right.axis.toFixed(0)}`);
+}
+
+// Button click feedback
+function addButtonFeedback(button) {
+  button.style.transform = 'translateY(0) scale(0.95)';
+  setTimeout(() => {
+    button.style.transform = '';
+  }, 100);
 }
 
 function syncLensToShader() {
@@ -425,6 +502,11 @@ function syncLensToShader() {
 function toggleDrawer(forceOpen) {
   appState.drawerOpen = typeof forceOpen === "boolean" ? forceOpen : !appState.drawerOpen;
   ui.immersiveDrawer.classList.toggle("open", appState.drawerOpen);
+}
+
+function toggleShortcutOverlay(forceOpen) {
+  appState.shortcutOverlayOpen = typeof forceOpen === "boolean" ? forceOpen : !appState.shortcutOverlayOpen;
+  ui.shortcutOverlay.hidden = !appState.shortcutOverlayOpen;
 }
 
 function setPointerFromEvent(event) {
@@ -542,12 +624,35 @@ function bindAxisDial(dialElement, lensKey) {
 }
 
 function bindUi() {
-  ui.drawerToggle.addEventListener("click", () => toggleDrawer());
-  ui.drawerClose.addEventListener("click", () => toggleDrawer(false));
+  ui.drawerToggle.addEventListener("click", () => {
+    addButtonFeedback(ui.drawerToggle);
+    toggleDrawer();
+  });
+  
+  ui.drawerClose.addEventListener("click", () => {
+    addButtonFeedback(ui.drawerClose);
+    toggleDrawer(false);
+  });
+
+  ui.shortcutClose.addEventListener("click", () => {
+    addButtonFeedback(ui.shortcutClose);
+    toggleShortcutOverlay(false);
+  });
+
+  ui.shortcutOverlay.addEventListener("click", (event) => {
+    if (event.target instanceof HTMLElement && event.target.dataset.closeShortcuts === "true") {
+      toggleShortcutOverlay(false);
+    }
+  });
+
+  // Debounced distance update for smooth performance
+  const debouncedDistanceUpdate = debounce(() => {
+    updatePosterTransform();
+  }, 10);
 
   ui.distanceRange.addEventListener("input", () => {
     appState.distanceM = Number(ui.distanceRange.value);
-    updatePosterTransform();
+    debouncedDistanceUpdate();
   });
 
   ui.glassesEnabled.addEventListener("change", () => {
@@ -580,6 +685,7 @@ function bindUi() {
       const control = btn.dataset.control;
       const step = Number(btn.dataset.step);
       const precisionStep = event.altKey ? step * 0.2 : step;
+      addButtonFeedback(btn);
       adjustLens(lensKey, control, precisionStep);
     });
   });
@@ -601,6 +707,10 @@ function bindUi() {
   });
 
   window.addEventListener("pointerdown", (event) => {
+    if (appState.shortcutOverlayOpen) {
+      return;
+    }
+
     const inDrawer = ui.immersiveDrawer.contains(event.target);
     const inTopbar = event.target.closest(".immersive-topbar");
 
@@ -611,7 +721,17 @@ function bindUi() {
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (appState.shortcutOverlayOpen) {
+        toggleShortcutOverlay(false);
+        return;
+      }
+
       toggleDrawer(false);
+    }
+
+    if (event.key === "?" && !event.repeat) {
+      event.preventDefault();
+      toggleShortcutOverlay(true);
     }
   });
 }

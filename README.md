@@ -1,4 +1,4 @@
-# 👓 Glasses Distance Poster Viewer
+#  👓 World view of a Spectic
 
 A lightweight 3D web app that simulates viewing a distant poster through configurable virtual glasses.
 
@@ -83,6 +83,12 @@ After the workflow finishes, your site is published at:
 
 ## Tech stack
 
-- HTML + CSS + JavaScript
-- Three.js (ES modules via CDN)
-- Custom post-processing shader for the virtual glasses effect
+- **Frontend**: Vanilla HTML + CSS + JavaScript (no framework)
+- **3D Engine**: Three.js (ES modules via CDN)
+- **Shaders**: Custom post-processing shader for virtual glasses effect
+- **Design System**: Custom CSS design tokens with modern 2026 standards
+  - Glass morphism effects (backdrop-filter)
+  - CSS custom properties for theming
+  - Inter font via Google Fonts
+  - Smooth transitions and micro-interactions
+- **Deployment**: GitHub Actions → GitHub Pages (static hosting)
