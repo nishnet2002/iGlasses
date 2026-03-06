@@ -5,6 +5,7 @@ A lightweight 3D web app that simulates viewing a distant poster through configu
 ## Features
 
 - Immersive-first single-screen UI (no separate classic page)
+- Unified left control drawer for view and scene adjustments
 - Floating **Left Lens** and **Right Lens** cards with direct controls:
   - SPH +/-
   - CYL +/-
@@ -14,6 +15,7 @@ A lightweight 3D web app that simulates viewing a distant poster through configu
 - Drawer menu for scene controls:
   - Poster preset (Snellen, Hot Air Balloon, Horizontal Lines, Vertical Lines)
   - Room preset (Optometrist, Warm Room, Cool Office, Dim Exam Room)
+- Shortcut overlay available with **?** and dismissible with **Esc**
 - Mouse interactions:
   - Drag to move poster
   - Shift+Drag or Right-drag to zoom distance
@@ -51,6 +53,8 @@ If port `5500` is busy, use another port (for example `5501`).
 - Drag in viewport to move poster
 - Hold `Shift` and drag (or right-drag) to zoom distance
 - Hold `Alt` while pressing `SPH/CYL +/-` for finer control
+- Press `?` to open the quick controls overlay
+- Press `Esc` to close the shortcut overlay or drawer
 
 ## Deploy on GitHub Pages
 
