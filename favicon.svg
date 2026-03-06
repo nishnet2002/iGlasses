@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="#060b12" stroke="url(#glassGrad)" stroke-width="3"/>
+  
+  <!-- Left lens -->
+  <circle cx="35" cy="50" r="15" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  <circle cx="35" cy="50" r="12" fill="rgba(59, 130, 246, 0.2)"/>
+  
+  <!-- Right lens -->
+  <circle cx="65" cy="50" r="15" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  <circle cx="65" cy="50" r="12" fill="rgba(59, 130, 246, 0.2)"/>
+  
+  <!-- Bridge -->
+  <line x1="50" y1="50" x2="50" y2="50" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 50 50 Q 50 45 50 50" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Left temple -->
+  <path d="M 20 50 L 10 50" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Right temple -->
+  <path d="M 80 50 L 90 50" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Lens highlights for depth -->
+  <ellipse cx="32" cy="46" rx="4" ry="3" fill="rgba(255, 255, 255, 0.6)"/>
+  <ellipse cx="62" cy="46" rx="4" ry="3" fill="rgba(255, 255, 255, 0.6)"/>
+</svg>
