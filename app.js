@@ -6,6 +6,8 @@ const ui = {
   drawerToggle: document.getElementById("drawerToggle"),
   drawerClose: document.getElementById("drawerClose"),
   immersiveDrawer: document.getElementById("immersiveDrawer"),
+  shortcutOverlay: document.getElementById("shortcutOverlay"),
+  shortcutClose: document.getElementById("shortcutClose"),
   lensStepButtons: Array.from(document.querySelectorAll(".lens-step")),
   axisDialLeft: document.getElementById("axisDialLeft"),
   axisDialRight: document.getElementById("axisDialRight"),
@@ -29,6 +31,7 @@ const appState = {
   distanceM: Number(ui.distanceRange.value),
   glassesEnabled: true,
   drawerOpen: false,
+  shortcutOverlayOpen: false,
   lens: {
     left: { sph: -0.25, cyl: -3.25, axis: 25 },
     right: { sph: -0.25, cyl: -3.25, axis: 25 }
@@ -501,6 +504,11 @@ function toggleDrawer(forceOpen) {
   ui.immersiveDrawer.classList.toggle("open", appState.drawerOpen);
 }
 
+function toggleShortcutOverlay(forceOpen) {
+  appState.shortcutOverlayOpen = typeof forceOpen === "boolean" ? forceOpen : !appState.shortcutOverlayOpen;
+  ui.shortcutOverlay.hidden = !appState.shortcutOverlayOpen;
+}
+
 function setPointerFromEvent(event) {
   const rect = renderer.domElement.getBoundingClientRect();
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -626,6 +634,17 @@ function bindUi() {
     toggleDrawer(false);
   });
 
+  ui.shortcutClose.addEventListener("click", () => {
+    addButtonFeedback(ui.shortcutClose);
+    toggleShortcutOverlay(false);
+  });
+
+  ui.shortcutOverlay.addEventListener("click", (event) => {
+    if (event.target instanceof HTMLElement && event.target.dataset.closeShortcuts === "true") {
+      toggleShortcutOverlay(false);
+    }
+  });
+
   // Debounced distance update for smooth performance
   const debouncedDistanceUpdate = debounce(() => {
     updatePosterTransform();
@@ -688,6 +707,10 @@ function bindUi() {
   });
 
   window.addEventListener("pointerdown", (event) => {
+    if (appState.shortcutOverlayOpen) {
+      return;
+    }
+
     const inDrawer = ui.immersiveDrawer.contains(event.target);
     const inTopbar = event.target.closest(".immersive-topbar");
 
@@ -698,7 +721,17 @@ function bindUi() {
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (appState.shortcutOverlayOpen) {
+        toggleShortcutOverlay(false);
+        return;
+      }
+
       toggleDrawer(false);
+    }
+
+    if (event.key === "?" && !event.repeat) {
+      event.preventDefault();
+      toggleShortcutOverlay(true);
     }
   });
 }
