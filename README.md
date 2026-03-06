@@ -1,4 +1,4 @@
-# World view of a Spectic
+#  👓 World view of a Spectic
 
 A lightweight 3D web app that simulates viewing a distant poster through configurable virtual glasses.
 
