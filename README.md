@@ -1,4 +1,4 @@
-# World view of a Spectic
+#  👓 World view of a Spectic
 
 A lightweight 3D web app that simulates viewing a distant poster through configurable virtual glasses.
 
@@ -71,6 +71,8 @@ If port `5500` is busy, use another port (for example `5501`).
 - Drag in the viewport to move the poster
 - Hold `Shift` and drag, or right-drag, to zoom distance
 - Hold `Alt` while pressing `SPH/CYL +/-` for finer control
+- Press `?` to open the quick controls overlay
+- Press `Esc` to close the shortcut overlay or drawer
 
 ## Deploy on GitHub Pages
 
