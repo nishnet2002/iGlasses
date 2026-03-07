@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World view of a Spectic</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👓</text></svg>" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
-    <section class="mobile-screen-notice" role="alert" aria-live="polite">
-      <div class="mobile-screen-notice-card">
+  <body data-bs-theme="dark">
+    <section class="mobile-screen-notice align-items-center justify-content-center" role="alert" aria-live="polite">
+      <div class="mobile-screen-notice-card card border-0 shadow-lg">
         <h1>Desktop or Larger Screen Required</h1>
         <p>
           This visual test experience is currently optimized for larger screens and is not available on small mobile devices.
@@ -24,167 +25,263 @@
       <div id="viewport"></div>
 
       <header class="immersive-topbar">
-        <button id="drawerToggle" class="top-btn" type="button">Menu</button>
+        <div class="topbar-actions">
+          <button id="drawerToggle" class="top-btn btn btn-primary" type="button" aria-expanded="false" aria-controls="immersiveDrawer">Controls</button>
+          <button id="shortcutToggle" class="top-btn top-btn-secondary btn btn-outline-light" type="button">Help</button>
+          <button id="resetView" class="top-btn top-btn-secondary btn btn-outline-light" type="button">Reset</button>
+        </div>
       </header>
 
-      <aside id="immersiveDrawer" class="immersive-drawer">
-        <div class="drawer-header">
+      <aside id="immersiveDrawer" class="offcanvas offcanvas-start immersive-drawer" tabindex="-1" aria-labelledby="immersiveDrawerLabel">
+        <div class="offcanvas-header align-items-start px-3 pt-3 pb-2">
           <div>
-            <h2>Scene Controls</h2>
-            <p class="drawer-subtitle">Tune your view</p>
+            <h2 id="immersiveDrawerLabel" class="offcanvas-title h5 mb-1">Controls</h2>
+            <p class="text-body-secondary small mb-0 drawer-subtitle">Tune your view</p>
           </div>
-          <button id="drawerClose" class="drawer-close" type="button">✕</button>
+          <button id="drawerClose" class="btn-close shadow-none" type="button" aria-label="Close"></button>
         </div>
 
-        <div class="drawer-stack">
-          <section class="drawer-section drawer-section-primary">
-            <h3 class="drawer-section-title">Vision</h3>
-            <label class="inline-toggle inline-toggle-card">
-              <input id="glassesEnabled" type="checkbox" checked />
-              <span>Glasses filter enabled</span>
-            </label>
+        <div class="offcanvas-body pt-2 px-3 pb-4">
+        <div class="d-flex flex-column gap-3">
+          <section class="drawer-summary-strip drawer-summary-strip-interactive" aria-labelledby="viewSummaryTitle">
+            <div class="drawer-summary-head">
+              <h3 id="viewSummaryTitle" class="drawer-summary-title">Current view</h3>
+              <span id="visionStateBadge" class="status-pill">Filter on</span>
+            </div>
 
-            <div class="control-block control-block-featured">
-              <div class="control-row">
-                <label for="distanceRange">Distance</label>
-                <div id="distanceValue" class="value-row"></div>
+            <div class="drawer-current-grid">
+              <div class="drawer-switch-row drawer-switch-row-current">
+                <label class="drawer-switch-copy" for="glassesEnabled">
+                  <span class="drawer-control-title">Filter</span>
+                  <span class="drawer-control-meta">Simulate blur</span>
+                </label>
+                <div class="form-check form-switch m-0 current-view-switch">
+                  <input id="glassesEnabled" class="form-check-input" type="checkbox" role="switch" checked />
+                </div>
               </div>
-              <input id="distanceRange" type="range" min="0.3048" max="20" step="0.01" value="3" />
-            </div>
-          </section>
 
-          <section class="drawer-section">
-            <h3 class="drawer-section-title">Scene</h3>
-
-            <div class="control-block">
-              <label for="posterType">Poster</label>
-              <select id="posterType">
-                <option value="snellen">Snellen Chart</option>
-                <option value="balloon">Classic Hot Air Balloon</option>
-                <option value="hLines">Horizontal Lines</option>
-                <option value="vLines">Vertical Lines</option>
-              </select>
+              <div class="drawer-field-stack drawer-field-stack-wide">
+                <div class="control-row mb-2">
+                  <label for="distanceRange" class="form-label fw-semibold mb-1">Distance</label>
+                  <div id="distanceValue" class="value-row"></div>
+                </div>
+                <input id="distanceRange" class="form-range m-0" type="range" min="0.3048" max="20" step="0.01" value="3" />
+                <p class="drawer-hint mb-0 mt-2">Tip: hold <span class="badge text-bg-secondary">Shift</span> and drag to zoom faster.</p>
+              </div>
             </div>
 
-            <div class="control-block">
-              <label for="lightingPreset">Room</label>
-              <select id="lightingPreset">
-                <option value="optometrist">Optometrist View (Default)</option>
-                <option value="warmRoom">Warm Room</option>
-                <option value="coolOffice">Cool Office</option>
-                <option value="dimExam">Dim Exam Room</option>
-              </select>
-            </div>
+            <dl class="summary-chip-list mb-0">
+              <div class="summary-chip summary-chip-control">
+                <dt>Poster</dt>
+                <dd>
+                  <div class="segmented-control" role="group" aria-label="Poster type">
+                    <button class="segmented-pill is-active" type="button" data-setting="posterType" data-value="snellen" aria-pressed="true">Snellen</button>
+                    <button class="segmented-pill" type="button" data-setting="posterType" data-value="balloon" aria-pressed="false">Balloon</button>
+                    <button class="segmented-pill" type="button" data-setting="posterType" data-value="hLines" aria-pressed="false">H-Lines</button>
+                    <button class="segmented-pill" type="button" data-setting="posterType" data-value="vLines" aria-pressed="false">V-Lines</button>
+                  </div>
+                  <select id="posterType" class="form-select form-select-sm summary-chip-select visually-hidden-control" tabindex="-1" aria-hidden="true">
+                    <option value="snellen">Snellen Chart</option>
+                    <option value="balloon">Classic Hot Air Balloon</option>
+                    <option value="hLines">Horizontal Lines</option>
+                    <option value="vLines">Vertical Lines</option>
+                  </select>
+                </dd>
+              </div>
+              <div class="summary-chip summary-chip-control">
+                <dt>Room</dt>
+                <dd>
+                  <div class="segmented-control segmented-control-room" role="group" aria-label="Room preset">
+                    <button class="segmented-pill is-active" type="button" data-setting="lightingPreset" data-value="optometrist" aria-pressed="true">Default</button>
+                    <button class="segmented-pill" type="button" data-setting="lightingPreset" data-value="warmRoom" aria-pressed="false">Warm</button>
+                    <button class="segmented-pill" type="button" data-setting="lightingPreset" data-value="coolOffice" aria-pressed="false">Cool</button>
+                    <button class="segmented-pill" type="button" data-setting="lightingPreset" data-value="dimExam" aria-pressed="false">Dim</button>
+                  </div>
+                  <select id="lightingPreset" class="form-select form-select-sm summary-chip-select visually-hidden-control" tabindex="-1" aria-hidden="true">
+                    <option value="optometrist">Optometrist View (Default)</option>
+                    <option value="warmRoom">Warm Room</option>
+                    <option value="coolOffice">Cool Office</option>
+                    <option value="dimExam">Dim Exam Room</option>
+                  </select>
+                </dd>
+              </div>
+              <div class="summary-chip summary-chip-wide">
+                <dt>Distance</dt>
+                <dd id="distanceSummary">3.00 m / 9.84 ft</dd>
+              </div>
+            </dl>
           </section>
 
-          <section class="drawer-section help-group">
-            <h3 class="drawer-section-title">Quick Controls</h3>
-            <p>Press <span class="keycap inline-keycap">?</span> to open shortcut help.</p>
+          <section class="drawer-panel drawer-panel-compact" aria-labelledby="quickControlsTitle">
+            <div class="drawer-panel-head">
+              <h3 id="quickControlsTitle" class="text-uppercase small fw-semibold text-secondary mb-0">Quick controls</h3>
+            </div>
+            <div class="drawer-quick-inline">
+              <button id="openGuideFromDrawer" class="btn btn-outline-primary btn-sm drawer-inline-btn" type="button">Shortcuts</button>
+            </div>
           </section>
+        </div>
         </div>
       </aside>
 
-      <div id="shortcutOverlay" class="shortcut-overlay" hidden>
-        <div class="shortcut-dialog-backdrop" data-close-shortcuts="true"></div>
-        <section class="shortcut-dialog" role="alertdialog" aria-modal="true" aria-labelledby="shortcutDialogTitle" aria-describedby="shortcutDialogHint">
+      <div id="shortcutOverlay" class="modal fade shortcut-overlay" tabindex="-1" aria-labelledby="shortcutDialogTitle" aria-describedby="shortcutDialogHint" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg px-2">
+        <section class="modal-content shortcut-dialog" role="alertdialog" aria-modal="true">
+          <div class="modal-body p-3 p-md-4">
           <div class="shortcut-dialog-header">
             <div>
-              <p class="shortcut-dialog-kicker">Quick Controls</p>
+              <p class="text-uppercase small fw-semibold text-secondary mb-2">Quick Controls</p>
               <h2 id="shortcutDialogTitle">Mouse & shortcut guide</h2>
-              <p id="shortcutDialogHint" class="shortcut-dialog-subtitle">Press <span class="keycap inline-keycap">Esc</span> to return</p>
+              <p id="shortcutDialogHint" class="text-body-secondary small mb-0 mt-2">Press <span class="badge text-bg-secondary">Esc</span> to return</p>
             </div>
-            <button id="shortcutClose" class="drawer-close shortcut-close" type="button" aria-label="Close quick controls">✕</button>
+            <button id="shortcutClose" class="btn-close shadow-none shortcut-close" type="button" aria-label="Close quick controls"></button>
           </div>
 
           <div class="shortcut-board shortcut-board-dialog">
-            <article class="shortcut-card">
+            <article class="shortcut-card card h-100">
               <h4>Move Poster</h4>
               <div class="shortcut-combo">
-                <span class="keycap mouse-key">Drag</span>
+                <span class="badge text-bg-secondary">Drag</span>
               </div>
               <p>Left-click and drag to reposition the chart.</p>
             </article>
 
-            <article class="shortcut-card">
+            <article class="shortcut-card card h-100">
               <h4>Zoom View</h4>
               <div class="shortcut-combo">
-                <span class="keycap">Shift</span>
+                <span class="badge text-bg-secondary">Shift</span>
                 <span class="combo-plus">+</span>
-                <span class="keycap mouse-key">Drag</span>
+                <span class="badge text-bg-secondary">Drag</span>
               </div>
               <p>Use Shift with drag for smooth distance zoom.</p>
             </article>
 
-            <article class="shortcut-card">
+            <article class="shortcut-card card h-100">
               <h4>Fine Lens Step</h4>
               <div class="shortcut-combo">
-                <span class="keycap">Alt</span>
+                <span class="badge text-bg-secondary">Alt</span>
                 <span class="combo-plus">+</span>
-                <span class="keycap">Click</span>
+                <span class="badge text-bg-secondary">Click</span>
               </div>
               <p>Use smaller SPH and CYL adjustments for precision.</p>
             </article>
 
-            <article class="shortcut-card shortcut-card-wide">
+            <article class="shortcut-card shortcut-card-wide card h-100">
               <h4>Rotate Axis</h4>
               <div class="shortcut-combo">
-                <span class="keycap">Dial</span>
+                <span class="badge text-bg-secondary">Dial</span>
                 <span class="combo-plus">+</span>
-                <span class="keycap mouse-key">Drag</span>
+                <span class="badge text-bg-secondary">Drag</span>
               </div>
               <p>Grab the axis dial and drag to set the correction angle.</p>
             </article>
           </div>
+          </div>
         </section>
+        </div>
       </div>
 
-      <div id="hudLeftCard" class="hud-float-card left">
-        <div class="card-title">Left Lens</div>
-        <div id="hudLeftSph" class="lens-line">SPH: -0.25</div>
-        <div id="hudLeftCyl" class="lens-line">CYL: -3.25</div>
-        <div id="hudLeftAxis" class="lens-line">AXIS: 25°</div>
-
-        <div class="lens-grid">
-          <button class="lens-step" data-lens="left" data-control="sph" data-step="0.25">SPH +</button>
-          <button class="lens-step" data-lens="left" data-control="sph" data-step="-0.25">SPH -</button>
-          <button class="lens-step" data-lens="left" data-control="cyl" data-step="0.25">CYL +</button>
-          <button class="lens-step" data-lens="left" data-control="cyl" data-step="-0.25">CYL -</button>
+      <div id="hudLeftCard" class="hud-float-card left card shadow-sm">
+        <div class="card-body p-3 p-lg-4">
+        <div class="lens-card-top">
+          <div>
+            <div class="card-title">Left Lens</div>
+            <p class="lens-helper">Tap ± to adjust. <span class="lens-helper-inline">Alt</span> = fine steps.</p>
+          </div>
+          <span class="lens-mode-chip">L</span>
         </div>
 
-        <div class="axis-block">
+        <div class="lens-compact-list">
+          <section class="lens-row-card">
+            <div class="lens-row-copy">
+              <span class="lens-label">SPH</span>
+              <span id="hudLeftSph" class="lens-value lens-value-chip">-0.25</span>
+            </div>
+            <div class="lens-actions lens-actions-inline">
+              <button class="lens-step btn btn-outline-primary" data-lens="left" data-control="sph" data-step="-0.25" aria-label="Decrease left sphere">−</button>
+              <button class="lens-step btn btn-outline-primary" data-lens="left" data-control="sph" data-step="0.25" aria-label="Increase left sphere">+</button>
+            </div>
+          </section>
+
+          <section class="lens-row-card">
+            <div class="lens-row-copy">
+              <span class="lens-label">CYL</span>
+              <span id="hudLeftCyl" class="lens-value lens-value-chip">-3.25</span>
+            </div>
+            <div class="lens-actions lens-actions-inline">
+              <button class="lens-step btn btn-outline-primary" data-lens="left" data-control="cyl" data-step="-0.25" aria-label="Decrease left cylinder">−</button>
+              <button class="lens-step btn btn-outline-primary" data-lens="left" data-control="cyl" data-step="0.25" aria-label="Increase left cylinder">+</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="axis-block axis-block-card">
+          <div class="axis-panel-copy">
+            <div class="axis-label">Axis</div>
+            <div id="hudLeftAxis" class="axis-value">25°</div>
+            <div class="axis-helper">Drag the dial to rotate.</div>
+          </div>
           <div id="axisDialLeft" class="axis-dial" role="slider" aria-label="Left axis dial" aria-valuemin="0" aria-valuemax="180" aria-valuenow="25" tabindex="0">
             <div id="axisDialHandLeft" class="axis-dial-hand"></div>
             <div class="axis-core">AXIS</div>
           </div>
-          <div id="axisValueLeft" class="axis-value">25°</div>
+        </div>
         </div>
       </div>
 
-      <div id="hudRightCard" class="hud-float-card right">
-        <div class="card-title">Right Lens</div>
-        <div id="hudRightSph" class="lens-line">SPH: -0.25</div>
-        <div id="hudRightCyl" class="lens-line">CYL: -3.25</div>
-        <div id="hudRightAxis" class="lens-line">AXIS: 25°</div>
-
-        <div class="lens-grid">
-          <button class="lens-step" data-lens="right" data-control="sph" data-step="0.25">SPH +</button>
-          <button class="lens-step" data-lens="right" data-control="sph" data-step="-0.25">SPH -</button>
-          <button class="lens-step" data-lens="right" data-control="cyl" data-step="0.25">CYL +</button>
-          <button class="lens-step" data-lens="right" data-control="cyl" data-step="-0.25">CYL -</button>
+      <div id="hudRightCard" class="hud-float-card right card shadow-sm">
+        <div class="card-body p-3 p-lg-4">
+        <div class="lens-card-top">
+          <div>
+            <div class="card-title">Right Lens</div>
+            <p class="lens-helper">Tap ± to adjust. <span class="lens-helper-inline">Alt</span> = fine steps.</p>
+          </div>
+          <span class="lens-mode-chip">R</span>
         </div>
 
-        <div class="axis-block">
+        <div class="lens-compact-list">
+          <section class="lens-row-card">
+            <div class="lens-row-copy">
+              <span class="lens-label">SPH</span>
+              <span id="hudRightSph" class="lens-value lens-value-chip">-0.25</span>
+            </div>
+            <div class="lens-actions lens-actions-inline">
+              <button class="lens-step btn btn-outline-primary" data-lens="right" data-control="sph" data-step="-0.25" aria-label="Decrease right sphere">−</button>
+              <button class="lens-step btn btn-outline-primary" data-lens="right" data-control="sph" data-step="0.25" aria-label="Increase right sphere">+</button>
+            </div>
+          </section>
+
+          <section class="lens-row-card">
+            <div class="lens-row-copy">
+              <span class="lens-label">CYL</span>
+              <span id="hudRightCyl" class="lens-value lens-value-chip">-3.25</span>
+            </div>
+            <div class="lens-actions lens-actions-inline">
+              <button class="lens-step btn btn-outline-primary" data-lens="right" data-control="cyl" data-step="-0.25" aria-label="Decrease right cylinder">−</button>
+              <button class="lens-step btn btn-outline-primary" data-lens="right" data-control="cyl" data-step="0.25" aria-label="Increase right cylinder">+</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="axis-block axis-block-card">
+          <div class="axis-panel-copy">
+            <div class="axis-label">Axis</div>
+            <div id="hudRightAxis" class="axis-value">25°</div>
+            <div class="axis-helper">Drag the dial to rotate.</div>
+          </div>
           <div id="axisDialRight" class="axis-dial" role="slider" aria-label="Right axis dial" aria-valuemin="0" aria-valuemax="180" aria-valuenow="25" tabindex="0">
             <div id="axisDialHandRight" class="axis-dial-hand"></div>
             <div class="axis-core">AXIS</div>
           </div>
-          <div id="axisValueRight" class="axis-value">25°</div>
+        </div>
         </div>
       </div>
 
-      <div id="hudDistanceChip" class="hud-distance-chip">3.00m / 9.84ft</div>
+      <div id="statusToast" class="status-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="hudDistanceChip" class="hud-distance-chip badge text-bg-dark fs-6 px-3 py-2">3.00m / 9.84ft</div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
