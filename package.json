@@ -1,0 +1,61 @@
+{
+  "name": "glasses-vision-simulator",
+  "version": "0.1.0",
+  "description": "Windows desktop shell and static web build for the glasses vision simulator.",
+  "main": "electron/main.js",
+  "author": "Nishit",
+  "license": "MIT",
+  "scripts": {
+    "build:icon": "node ./scripts/build-icon.mjs",
+    "prepare:assets": "node ./scripts/prepare-assets.mjs",
+    "build:web": "npm run prepare:assets && node ./scripts/build-web.mjs",
+    "validate:build": "npm run build:icon && npm run prepare:assets && node ./scripts/validate-build.mjs",
+    "start:web": "npm run prepare:assets && http-server . -p 5500 -c-1",
+    "start:desktop": "npm run build:icon && npm run prepare:assets && electron .",
+    "start:desktop:web": "npm run build:icon && electron . --app-url=http://localhost:5500 --devtools",
+    "dist:win": "npm run build:icon && npm run prepare:assets && electron-builder --win nsis",
+    "postinstall": "npm run build:icon && npm run prepare:assets"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "three": "^0.181.1"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "electron": "^37.5.0",
+    "electron-builder": "^26.0.12",
+    "http-server": "^14.1.1",
+    "png-to-ico": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.nishit.iglases",
+    "productName": "iGlasses Simulator",
+    "directories": {
+      "output": "dist/electron"
+    },
+    "files": [
+      "app.js",
+      "index.html",
+      "styles.css",
+      "vendor/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    }
+  }
+}

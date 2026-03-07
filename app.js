@@ -1,4 +1,4 @@
-import * as THREE from "https://unpkg.com/three@0.164.1/build/three.module.js";
+import * as THREE from "./vendor/three.module.js";
 
 const viewport = document.getElementById("viewport");
 
@@ -249,6 +249,7 @@ const labelMap = {
 };
 
 let statusToastTimer = null;
+let fatalErrorShown = false;
 
 // Debounce utility
 function debounce(func, wait) {
@@ -286,6 +287,16 @@ function announceStatus(message) {
   statusToastTimer = window.setTimeout(() => {
     ui.statusToast.classList.remove("visible");
   }, 2200);
+}
+
+function reportRuntimeIssue(message, error) {
+  const details = error instanceof Error ? `${error.name}: ${error.message}` : String(error || "");
+  console.error(message, error);
+  announceStatus(message);
+
+  if (!fatalErrorShown || details) {
+    fatalErrorShown = true;
+  }
 }
 
 function updateViewSummary() {
@@ -990,6 +1001,25 @@ function bindUi() {
   });
 }
 
+function bindRuntimeDiagnostics() {
+  window.addEventListener("error", (event) => {
+    reportRuntimeIssue("A runtime error occurred. Check the console for details.", event.error || event.message);
+  });
+
+  window.addEventListener("unhandledrejection", (event) => {
+    reportRuntimeIssue("An unexpected async error occurred. Check the console for details.", event.reason);
+  });
+
+  renderer.domElement.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    reportRuntimeIssue("WebGL context was lost. The view may stop updating.", null);
+  });
+
+  renderer.domElement.addEventListener("webglcontextrestored", () => {
+    announceStatus("WebGL context restored.");
+  });
+}
+
 function resize() {
   const width = viewport.clientWidth;
   const height = viewport.clientHeight;
@@ -1013,6 +1043,7 @@ function animate() {
 }
 
 bindUi();
+bindRuntimeDiagnostics();
 updatePosterTexture();
 applyLightingPreset(appState.lightingPreset);
 updatePosterTransform();
