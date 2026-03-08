@@ -25,6 +25,5 @@ const cacheBustedHtml = indexHtml
   .replace("./app.js", `./app.js?v=${buildId}`);
 
 await writeFile(outputIndexPath, cacheBustedHtml, "utf8");
-await writeFile(path.join(outputDir, ".nojekyll"), "", "utf8");
 
 console.log(`Built static web output in ${outputDir}.`);

@@ -136,7 +136,6 @@ This repository includes a GitHub Actions workflow at `.github/workflows/deploy-
 
 The workflow installs dependencies, prepares the frontend assets in `third_party/`, builds `dist/web`, and deploys that folder to GitHub Pages.
 The production build injects a cache-busting build id into the CSS and JS URLs so GitHub Pages updates are less likely to serve stale frontend assets after a deploy.
-It also writes a `.nojekyll` file into `dist/web` so GitHub Pages serves the bundled static assets without Jekyll filtering.
 
 ### 1) Create a new GitHub repository
 
