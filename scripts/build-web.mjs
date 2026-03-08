@@ -38,7 +38,11 @@ const expectedFiles = [
 ];
 
 for (const file of expectedFiles) {
-  await access(path.join(outputDir, file));
+  try {
+    await access(path.join(outputDir, file));
+  } catch {
+    throw new Error(`Build validation failed: missing expected file ${file}`);
+  }
 }
 
 console.log(`Built and validated static web output in ${outputDir} (${expectedFiles.length} files).`);
