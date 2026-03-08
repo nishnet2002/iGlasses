@@ -64,6 +64,26 @@ Then open:
 
 If port `5500` is busy, use another port (for example `5501`).
 
+### Local production deploy
+
+Build the production bundle and serve `dist/web` locally:
+
+```bash
+npm run deploy:local
+```
+
+Then open:
+
+- `http://localhost:4173`
+
+### VS Code one-click task
+
+1. Open Command Palette (`Ctrl+Shift+P`)
+2. Run: **Tasks: Run Build Task**
+3. Choose: **Deploy Local Production Build (Glasses)**
+
+That task builds the production site and starts a local server for the generated `dist/web` output.
+
 ### Desktop app
 
 Launch the Electron desktop shell:
@@ -113,6 +133,7 @@ npm run validate:build
 This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml`.
 
 The workflow installs dependencies, localizes frontend assets, builds `dist/web`, and deploys that folder to GitHub Pages.
+The production build injects a cache-busting build id into the CSS and JS URLs so GitHub Pages updates are less likely to serve stale frontend assets after a deploy.
 
 ### 1) Create a new GitHub repository
 
