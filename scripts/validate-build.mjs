@@ -12,10 +12,10 @@ const requiredPaths = [
   "build/icon.png",
   "build/icon.ico",
   "electron/main.js",
-  "vendor/bootstrap.min.css",
-  "vendor/bootstrap.bundle.min.js",
-  "vendor/three.module.js",
-  "vendor/three.core.js"
+  "third_party/bootstrap.min.css",
+  "third_party/bootstrap.bundle.min.js",
+  "third_party/three.module.js",
+  "third_party/three.core.js"
 ];
 
 for (const relativePath of requiredPaths) {

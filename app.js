@@ -1,4 +1,4 @@
-import * as THREE from "./vendor/three.module.js";
+import * as THREE from "./third_party/three.module.js";
 
 const viewport = document.getElementById("viewport");
 
