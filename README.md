@@ -2,6 +2,8 @@
 
 A lightweight 3D web app that simulates viewing a distant poster through configurable virtual glasses.
 
+This repository now also includes a minimal Electron shell for packaging the simulator as an offline Windows desktop app.
+
 ## Features
 
 - Immersive single-screen UI built for desktop and large screens
@@ -37,6 +39,12 @@ A lightweight 3D web app that simulates viewing a distant poster through configu
 
 ## Run locally
 
+Install dependencies first:
+
+```bash
+npm install
+```
+
 ### Option A: VS Code task (one-click)
 
 1. Open Command Palette (`Ctrl+Shift+P`)
@@ -47,7 +55,7 @@ A lightweight 3D web app that simulates viewing a distant poster through configu
 ### Option B: Command line
 
 ```bash
-npx --yes http-server . -p 5500 -c-1
+npm run start:web
 ```
 
 Then open:
@@ -55,6 +63,32 @@ Then open:
 - `http://localhost:5500`
 
 If port `5500` is busy, use another port (for example `5501`).
+
+### Desktop app
+
+Launch the Electron desktop shell:
+
+```bash
+npm run start:desktop
+```
+
+Launch Electron against the local web server for wrapper-only debugging:
+
+```bash
+npm run start:desktop:web
+```
+
+Build the Windows installer:
+
+```bash
+npm run dist:win
+```
+
+Validate required desktop build inputs:
+
+```bash
+npm run validate:build
+```
 
 ### In-app controls
 
@@ -77,6 +111,8 @@ If port `5500` is busy, use another port (for example `5501`).
 ## Deploy on GitHub Pages
 
 This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml`.
+
+The workflow installs dependencies, localizes frontend assets, builds `dist/web`, and deploys that folder to GitHub Pages.
 
 ### 1) Create a new GitHub repository
 
@@ -103,14 +139,24 @@ After the workflow finishes, your site is published at:
 
 - `https://<your-username>.github.io/<your-repo>/`
 
+## Desktop release automation
+
+The Windows desktop pipeline lives at `.github/workflows/build-windows-release.yml`.
+
+- Push a tag like `v0.1.0` to build the Windows installer automatically
+- The workflow creates or updates the matching GitHub Release
+- The built `.exe` installer is attached to that release
+
 ## Tech stack
 
 - **Frontend**: Vanilla HTML + CSS + JavaScript (no framework)
-- **UI helpers**: Bootstrap 5 for utility classes and modal/offcanvas behavior
-- **3D Engine**: Three.js (ES modules via CDN)
+- **UI helpers**: Bootstrap 5 loaded from local packaged assets
+- **3D Engine**: Three.js loaded from local packaged assets
 - **Shaders**: Custom post-processing shader for virtual glasses effect
+- **Desktop shell**: Electron
+- **Packaging**: electron-builder
 - **Design System**: Custom CSS design tokens and immersive overlay styling
   - gradient glass panels
   - CSS custom properties for theming
   - smooth transitions and micro-interactions
-- **Deployment**: GitHub Actions → GitHub Pages (static hosting)
+- **Deployment**: GitHub Actions → GitHub Pages and GitHub Releases
