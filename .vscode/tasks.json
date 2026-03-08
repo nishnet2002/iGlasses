@@ -2,6 +2,93 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Build Web App (Glasses)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build:web"
+			],
+			"options": {
+				"shell": {
+					"executable": "C:\\Windows\\System32\\cmd.exe",
+					"args": [
+						"/d",
+						"/c"
+					]
+				}
+			},
+			"group": "build"
+		},
+		{
+			"label": "Deploy Local Production Build (Glasses)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"deploy:local"
+			],
+			"options": {
+				"shell": {
+					"executable": "C:\\Windows\\System32\\cmd.exe",
+					"args": [
+						"/d",
+						"/c"
+					]
+				}
+			},
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Create Local HTTPS Cert (Glasses)",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"cert:local:https"
+			],
+			"options": {
+				"shell": {
+					"executable": "C:\\Windows\\System32\\cmd.exe",
+					"args": [
+						"/d",
+						"/c"
+					]
+				}
+			},
+			"group": "build"
+		},
+		{
+			"label": "Deploy Local HTTPS Build (Glasses)",
+			"dependsOn": [
+				"Create Local HTTPS Cert (Glasses)"
+			],
+			"dependsOrder": "sequence",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"deploy:local:https"
+			],
+			"options": {
+				"shell": {
+					"executable": "C:\\Windows\\System32\\cmd.exe",
+					"args": [
+						"/d",
+						"/c"
+					]
+				}
+			},
+			"isBackground": true,
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
 			"label": "Run Static Server (Glasses)",
 			"type": "shell",
 			"command": "npx",

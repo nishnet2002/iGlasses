@@ -211,10 +211,10 @@ posterCanvas.height = 480;
 const posterCtx = posterCanvas.getContext("2d");
 
 const raycaster = new THREE.Raycaster();
-const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 const pointer = new THREE.Vector2();
 const dragState = {
   active: false,
+  pointerId: null,
   mode: "move",
   offset: new THREE.Vector3(),
   startY: 0,
@@ -655,17 +655,19 @@ function setPointerFromEvent(event) {
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 }
 
-function intersectPosterPlane(event) {
+function isUiInteractionTarget(target) {
+  return Boolean(target?.closest?.(".immersive-drawer, .immersive-topbar, .hud-float-card, .shortcut-overlay"));
+}
+
+function intersectPoster(event) {
   setPointerFromEvent(event);
   raycaster.setFromCamera(pointer, camera);
-  dragPlane.constant = appState.distanceM;
-  const hit = new THREE.Vector3();
-  const didHit = raycaster.ray.intersectPlane(dragPlane, hit);
-  return didHit ? hit : null;
+  const [hit] = raycaster.intersectObject(poster, false);
+  return hit?.point || null;
 }
 
 function startPosterDrag(event) {
-  if (event.target.closest(".immersive-drawer, .immersive-topbar, .hud-float-card")) {
+  if (axisDialState.active || isUiInteractionTarget(event.target)) {
     return;
   }
 
@@ -676,6 +678,7 @@ function startPosterDrag(event) {
   const zoomMode = event.button === 2 || event.shiftKey;
   if (zoomMode) {
     dragState.active = true;
+    dragState.pointerId = event.pointerId;
     dragState.mode = "zoom";
     dragState.startY = event.clientY;
     dragState.startDistance = appState.distanceM;
@@ -683,18 +686,23 @@ function startPosterDrag(event) {
     return;
   }
 
-  const hit = intersectPosterPlane(event);
+  const hit = intersectPoster(event);
   if (!hit) {
     return;
   }
 
   dragState.active = true;
+  dragState.pointerId = event.pointerId;
   dragState.mode = "move";
   dragState.offset.set(hit.x - appState.posterPosition.x, hit.y - appState.posterPosition.y, 0);
   renderer.domElement.style.cursor = "grabbing";
 }
 
 function onPosterDrag(event) {
+  if (axisDialState.active || dragState.pointerId !== event.pointerId) {
+    return;
+  }
+
   if (!dragState.active) {
     return;
   }
@@ -707,7 +715,7 @@ function onPosterDrag(event) {
     return;
   }
 
-  const hit = intersectPosterPlane(event);
+  const hit = intersectPoster(event);
   if (!hit) {
     return;
   }
@@ -717,10 +725,15 @@ function onPosterDrag(event) {
   updatePosterTransform();
 }
 
-function endPosterDrag() {
+function endPosterDrag(event) {
+  if (event?.pointerId != null && dragState.pointerId !== event.pointerId) {
+    return;
+  }
+
   const wasActive = dragState.active;
   const mode = dragState.mode;
   dragState.active = false;
+  dragState.pointerId = null;
   renderer.domElement.style.cursor = "grab";
 
   if (!wasActive) {
@@ -766,13 +779,34 @@ function setAxisFromPointer(lensKey, clientX, clientY, dialEl) {
 
 function bindAxisDial(dialElement, lensKey) {
   dialElement.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragState.active = false;
+    dragState.pointerId = null;
     axisDialState.active = true;
     axisDialState.lensKey = lensKey;
+    dialElement.setPointerCapture?.(event.pointerId);
     setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
   });
 
   dialElement.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
+  });
+
+  dialElement.addEventListener("pointerup", (event) => {
+    event.stopPropagation();
+    axisDialState.active = false;
+    dialElement.releasePointerCapture?.(event.pointerId);
+  });
+
+  dialElement.addEventListener("pointercancel", () => {
+    axisDialState.active = false;
+  });
+
+  dialElement.addEventListener("lostpointercapture", () => {
+    axisDialState.active = false;
   });
 
   dialElement.addEventListener("keydown", (event) => {
@@ -945,6 +979,10 @@ function bindUi() {
   window.addEventListener("pointercancel", endPosterDrag);
 
   ui.lensStepButtons.forEach((btn) => {
+    btn.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+
     btn.addEventListener("click", (event) => {
       const lensKey = btn.dataset.lens;
       const control = btn.dataset.control;
@@ -978,8 +1016,9 @@ function bindUi() {
 
     const inDrawer = ui.immersiveDrawer.contains(event.target);
     const inTopbar = event.target.closest(".immersive-topbar");
+    const inHud = event.target.closest(".hud-float-card");
 
-    if (appState.drawerOpen && !inDrawer && !inTopbar) {
+    if (appState.drawerOpen && !inDrawer && !inTopbar && !inHud) {
       toggleDrawer(false);
     }
   });
@@ -1037,7 +1076,6 @@ function animate() {
 
   renderer.setRenderTarget(offscreen);
   renderer.render(scene, camera);
-
   renderer.setRenderTarget(null);
   renderer.render(postScene, postCamera);
 }
