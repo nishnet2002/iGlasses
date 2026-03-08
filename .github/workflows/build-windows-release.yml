@@ -23,7 +23,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Validate build inputs
+        run: npm run validate:build
 
       - name: Build Windows distributables
         run: npm run dist:win

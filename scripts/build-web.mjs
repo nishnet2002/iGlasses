@@ -1,4 +1,4 @@
-import { cp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,4 +26,19 @@ const cacheBustedHtml = indexHtml
 
 await writeFile(outputIndexPath, cacheBustedHtml, "utf8");
 
-console.log(`Built static web output in ${outputDir}.`);
+// Prevent GitHub Pages from running Jekyll on the deployed files
+await writeFile(path.join(outputDir, ".nojekyll"), "", "utf8");
+
+// Validate that all expected output files exist
+const expectedFiles = [
+  "index.html", "app.js", "styles.css", ".nojekyll",
+  "third_party/bootstrap.min.css",
+  "third_party/bootstrap.bundle.min.js",
+  "third_party/three.module.js"
+];
+
+for (const file of expectedFiles) {
+  await access(path.join(outputDir, file));
+}
+
+console.log(`Built and validated static web output in ${outputDir} (${expectedFiles.length} files).`);
