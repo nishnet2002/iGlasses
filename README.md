@@ -110,6 +110,8 @@ Validate required desktop build inputs:
 npm run validate:build
 ```
 
+That validation checks the required static assets, including the locally prepared files in `third_party/`.
+
 ### In-app controls
 
 - Open **Controls** to access the main current-view panel
@@ -132,8 +134,9 @@ npm run validate:build
 
 This repository includes a GitHub Actions workflow at `.github/workflows/deploy-pages.yml`.
 
-The workflow installs dependencies, localizes frontend assets, builds `dist/web`, and deploys that folder to GitHub Pages.
+The workflow installs dependencies, prepares the frontend assets in `third_party/`, builds `dist/web`, and deploys that folder to GitHub Pages.
 The production build injects a cache-busting build id into the CSS and JS URLs so GitHub Pages updates are less likely to serve stale frontend assets after a deploy.
+It also writes a `.nojekyll` file into `dist/web` so GitHub Pages serves the bundled static assets without Jekyll filtering.
 
 ### 1) Create a new GitHub repository
 
