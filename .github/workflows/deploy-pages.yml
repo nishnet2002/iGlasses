@@ -31,15 +31,24 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build static site
         run: npm run build:web
 
+      - name: Validate build output
+        run: |
+          for f in dist/web/index.html dist/web/app.js dist/web/styles.css \
+                   dist/web/third_party/bootstrap.min.css \
+                   dist/web/third_party/bootstrap.bundle.min.js \
+                   dist/web/third_party/three.module.js \
+                   dist/web/.nojekyll; do
+            [ -f "$f" ] || { echo "Missing: $f"; exit 1; }
+          done
+          echo "All expected build outputs present."
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
