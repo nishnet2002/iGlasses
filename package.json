@@ -9,6 +9,7 @@
     "build:icon": "node ./scripts/build-icon.mjs",
     "prepare:assets": "node ./scripts/prepare-assets.mjs",
     "build:web": "npm run prepare:assets && node ./scripts/build-web.mjs",
+    "check:push": "npm run validate:build && npm run build:web && npm run test:ui",
     "cert:local:https": "powershell -ExecutionPolicy Bypass -File ./scripts/create-local-cert.ps1",
     "deploy:local": "npm run build:web && http-server ./dist/web -p 4173 -c-1 -o",
     "deploy:local:https": "npm run build:web && node ./scripts/serve-https-local.mjs",
@@ -17,6 +18,8 @@
     "start:desktop": "npm run build:icon && npm run prepare:assets && electron .",
     "start:desktop:web": "npm run build:icon && electron . --app-url=http://localhost:5500 --devtools",
     "dist:win": "npm run build:icon && npm run prepare:assets && electron-builder --win nsis",
+    "test:ui": "playwright test && node ./scripts/write-ux-review.mjs",
+    "test:ui:update": "playwright test --update-snapshots",
     "postinstall": "npm run build:icon && npm run prepare:assets"
   },
   "dependencies": {
@@ -24,6 +27,7 @@
     "three": "^0.181.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@resvg/resvg-js": "^2.6.2",
     "electron": "^37.5.0",
     "electron-builder": "^26.0.12",

@@ -3,6 +3,7 @@ import * as THREE from "./third_party/three.module.js";
 const viewport = document.getElementById("viewport");
 
 const ui = {
+  body: document.body,
   drawerToggle: document.getElementById("drawerToggle"),
   shortcutToggle: document.getElementById("shortcutToggle"),
   resetView: document.getElementById("resetView"),
@@ -16,6 +17,8 @@ const ui = {
   axisDialRight: document.getElementById("axisDialRight"),
   axisValueLeft: document.getElementById("axisValueLeft") || document.getElementById("hudLeftAxis"),
   axisValueRight: document.getElementById("axisValueRight") || document.getElementById("hudRightAxis"),
+  hudLeftCard: document.getElementById("hudLeftCard"),
+  hudRightCard: document.getElementById("hudRightCard"),
   hudLeftSph: document.getElementById("hudLeftSph"),
   hudLeftCyl: document.getElementById("hudLeftCyl"),
   hudLeftAxis: document.getElementById("hudLeftAxis") || document.getElementById("axisValueLeft"),
@@ -31,7 +34,9 @@ const ui = {
   segmentedPills: Array.from(document.querySelectorAll(".segmented-pill")),
   visionStateBadge: document.getElementById("visionStateBadge"),
   posterSummary: document.getElementById("posterSummary"),
+  posterSummaryDock: document.getElementById("posterSummaryDock"),
   roomSummary: document.getElementById("roomSummary"),
+  roomSummaryDock: document.getElementById("roomSummaryDock"),
   distanceSummary: document.getElementById("distanceSummary"),
   statusToast: document.getElementById("statusToast")
 };
@@ -233,6 +238,8 @@ const animationState = {
   distanceAnimationFrame: null
 };
 
+let activeLensCard = "left";
+
 const labelMap = {
   posterType: {
     snellen: "Snellen Chart",
@@ -302,14 +309,22 @@ function reportRuntimeIssue(message, error) {
 function updateViewSummary() {
   const distanceFt = appState.distanceM * 3.28084;
   const visionOn = appState.glassesEnabled;
+  const posterLabel = getPosterLabel(appState.posterType);
+  const lightingLabel = getLightingLabel(appState.lightingPreset);
 
   ui.visionStateBadge.textContent = visionOn ? "Filter on" : "Filter off";
   ui.visionStateBadge.classList.toggle("is-off", !visionOn);
   if (ui.posterSummary) {
-    ui.posterSummary.textContent = getPosterLabel(appState.posterType);
+    ui.posterSummary.textContent = posterLabel;
+  }
+  if (ui.posterSummaryDock) {
+    ui.posterSummaryDock.textContent = posterLabel;
   }
   if (ui.roomSummary) {
-    ui.roomSummary.textContent = getLightingLabel(appState.lightingPreset);
+    ui.roomSummary.textContent = lightingLabel;
+  }
+  if (ui.roomSummaryDock) {
+    ui.roomSummaryDock.textContent = lightingLabel;
   }
   if (ui.distanceSummary) {
     ui.distanceSummary.textContent = `${appState.distanceM.toFixed(2)} m / ${distanceFt.toFixed(2)} ft`;
@@ -325,6 +340,18 @@ function updateViewSummary() {
   });
 
   ui.drawerToggle.setAttribute("aria-expanded", String(appState.drawerOpen));
+}
+
+function syncShellState() {
+  ui.body?.classList.toggle("is-drawer-open", appState.drawerOpen);
+  ui.body?.classList.toggle("is-shortcut-open", appState.shortcutOverlayOpen);
+}
+
+function setActiveLensCard(lensKey) {
+  activeLensCard = lensKey;
+
+  ui.hudLeftCard?.classList.toggle("is-active", lensKey === "left");
+  ui.hudRightCard?.classList.toggle("is-active", lensKey === "right");
 }
 
 function drawSnellen() {
@@ -503,14 +530,17 @@ function updateDistanceText() {
   const distanceFt = appState.distanceM * 3.28084;
   const chipText = `${appState.distanceM.toFixed(2)}m / ${distanceFt.toFixed(2)}ft`;
   ui.distanceValue.textContent = `${appState.distanceM.toFixed(2)} m (${distanceFt.toFixed(2)} ft)`;
-  ui.hudDistanceChip.textContent = chipText;
+  if (ui.hudDistanceChip) {
+    ui.hudDistanceChip.textContent = chipText;
+  }
   updateViewSummary();
-  
-  // Add pulse animation to distance chip
-  ui.hudDistanceChip.style.animation = 'none';
-  requestAnimationFrame(() => {
-    ui.hudDistanceChip.style.animation = 'pulse 0.3s ease-out';
-  });
+
+  if (ui.hudDistanceChip) {
+    ui.hudDistanceChip.style.animation = "none";
+    requestAnimationFrame(() => {
+      ui.hudDistanceChip.style.animation = "pulse 0.3s ease-out";
+    });
+  }
 }
 
 // Smooth distance animation
@@ -630,6 +660,7 @@ function toggleDrawer(forceOpen) {
 
   appState.drawerOpen = shouldOpen;
   ui.immersiveDrawer.classList.toggle("show", shouldOpen);
+  syncShellState();
   updateViewSummary();
 }
 
@@ -647,6 +678,7 @@ function toggleShortcutOverlay(forceOpen) {
 
   appState.shortcutOverlayOpen = shouldOpen;
   ui.shortcutOverlay.hidden = !shouldOpen;
+  syncShellState();
 }
 
 function setPointerFromEvent(event) {
@@ -751,6 +783,8 @@ function endPosterDrag(event) {
 function adjustLens(lensKey, control, delta) {
   const lens = appState.lens[lensKey];
 
+  setActiveLensCard(lensKey);
+
   if (control === "sph") {
     lens.sph = THREE.MathUtils.clamp(lens.sph + delta, -10, 10);
   } else if (control === "cyl") {
@@ -774,6 +808,7 @@ function setAxisFromPointer(lensKey, clientX, clientY, dialEl) {
 
   const axis = Math.round(deg / 2);
   appState.lens[lensKey].axis = THREE.MathUtils.clamp(axis, 0, 180);
+  setActiveLensCard(lensKey);
   syncLensToShader();
 }
 
@@ -785,6 +820,7 @@ function bindAxisDial(dialElement, lensKey) {
     dragState.pointerId = null;
     axisDialState.active = true;
     axisDialState.lensKey = lensKey;
+    setActiveLensCard(lensKey);
     dialElement.setPointerCapture?.(event.pointerId);
     setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
   });
@@ -792,6 +828,7 @@ function bindAxisDial(dialElement, lensKey) {
   dialElement.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    setActiveLensCard(lensKey);
     setAxisFromPointer(lensKey, event.clientX, event.clientY, dialElement);
   });
 
@@ -831,6 +868,7 @@ function bindAxisDial(dialElement, lensKey) {
     }
 
     event.preventDefault();
+    setActiveLensCard(lensKey);
     syncLensToShader();
     announceStatus(`${lensKey === "left" ? "Left" : "Right"} axis set to ${lens.axis.toFixed(0)} degrees.`);
   });
@@ -863,11 +901,13 @@ function bindUi() {
   if (bootstrapUi.drawer) {
     ui.immersiveDrawer.addEventListener("shown.bs.offcanvas", () => {
       appState.drawerOpen = true;
+      syncShellState();
       updateViewSummary();
     });
 
     ui.immersiveDrawer.addEventListener("hidden.bs.offcanvas", () => {
       appState.drawerOpen = false;
+      syncShellState();
       updateViewSummary();
     });
   }
@@ -875,6 +915,7 @@ function bindUi() {
   if (bootstrapUi.shortcuts) {
     ui.shortcutOverlay.addEventListener("shown.bs.modal", () => {
       appState.shortcutOverlayOpen = true;
+      syncShellState();
       if (ui.statusToast) {
         ui.statusToast.classList.remove("visible");
       }
@@ -882,6 +923,7 @@ function bindUi() {
 
     ui.shortcutOverlay.addEventListener("hidden.bs.modal", () => {
       appState.shortcutOverlayOpen = false;
+      syncShellState();
     });
   }
 
@@ -981,6 +1023,7 @@ function bindUi() {
   ui.lensStepButtons.forEach((btn) => {
     btn.addEventListener("pointerdown", (event) => {
       event.stopPropagation();
+      setActiveLensCard(btn.dataset.lens);
     });
 
     btn.addEventListener("click", (event) => {
@@ -990,6 +1033,20 @@ function bindUi() {
       const precisionStep = event.altKey ? step * 0.2 : step;
       addButtonFeedback(btn);
       adjustLens(lensKey, control, precisionStep);
+    });
+  });
+
+  [ui.hudLeftCard, ui.hudRightCard].forEach((card) => {
+    if (!card) {
+      return;
+    }
+
+    card.addEventListener("pointerdown", () => {
+      setActiveLensCard(card.dataset.lensCard);
+    });
+
+    card.addEventListener("focusin", () => {
+      setActiveLensCard(card.dataset.lensCard);
     });
   });
 
@@ -1087,6 +1144,8 @@ applyLightingPreset(appState.lightingPreset);
 updatePosterTransform();
 syncLensToShader();
 updateViewSummary();
+syncShellState();
+setActiveLensCard(activeLensCard);
 resize();
 animate();
 

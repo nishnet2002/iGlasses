@@ -4,3 +4,5 @@ release/
 third_party/
 .cert/
 *.log
+playwright-report/
+test-results/
