@@ -70,26 +70,26 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 viewport.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#dfe8f4");
+scene.background = new THREE.Color("#1a2230");
 
 const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 80);
 camera.position.set(0, 1.6, 0);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.68);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
 scene.add(ambientLight);
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.38);
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
 keyLight.position.set(2.5, 4, 2.5);
 scene.add(keyLight);
 
-const fillLight = new THREE.PointLight(0xd5e8ff, 0.47, 25);
+const fillLight = new THREE.PointLight(0x8ba8cc, 0.3, 25);
 fillLight.position.set(-3, 1.8, -2);
 scene.add(fillLight);
 
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdcecff, 0.58);
+const hemiLight = new THREE.HemisphereLight(0x8899b0, 0x1a2230, 0.35);
 scene.add(hemiLight);
 
-const roomMaterial = new THREE.MeshStandardMaterial({ color: "#f5f8fd", side: THREE.BackSide });
+const roomMaterial = new THREE.MeshStandardMaterial({ color: "#1e2a3a", side: THREE.BackSide });
 const room = new THREE.Mesh(new THREE.BoxGeometry(18, 6, 28), roomMaterial);
 room.position.set(0, 2.4, -8);
 scene.add(room);
@@ -104,7 +104,7 @@ scene.add(poster);
 
 const supportBar = new THREE.Mesh(
   new THREE.CylinderGeometry(0.018, 0.018, 5.25, 20),
-  new THREE.MeshStandardMaterial({ color: "#445166", roughness: 0.7 })
+  new THREE.MeshStandardMaterial({ color: "#3a4a60", roughness: 0.7 })
 );
 supportBar.rotation.z = Math.PI / 2;
 scene.add(supportBar);
@@ -476,53 +476,53 @@ function updatePosterTexture() {
 
 function applyLightingPreset(name) {
   if (name === "optometrist") {
-    ambientLight.color.set("#ffffff");
-    ambientLight.intensity = 0.68;
+    ambientLight.color.set("#c0ccdd");
+    ambientLight.intensity = 0.35;
     keyLight.color.set("#ffffff");
-    keyLight.intensity = 1.38;
-    fillLight.color.set("#d5e8ff");
-    fillLight.intensity = 0.47;
-    hemiLight.color.set("#ffffff");
-    hemiLight.groundColor.set("#dfecff");
-    hemiLight.intensity = 0.58;
-    roomMaterial.color.set("#f5f8fd");
-    scene.background.set("#dfe8f4");
+    keyLight.intensity = 0.9;
+    fillLight.color.set("#8ba8cc");
+    fillLight.intensity = 0.3;
+    hemiLight.color.set("#8899b0");
+    hemiLight.groundColor.set("#1a2230");
+    hemiLight.intensity = 0.35;
+    roomMaterial.color.set("#1e2a3a");
+    scene.background.set("#1a2230");
   } else if (name === "warmRoom") {
-    ambientLight.color.set("#ffe8c8");
-    ambientLight.intensity = 0.6;
-    keyLight.color.set("#ffc176");
-    keyLight.intensity = 1.17;
-    fillLight.color.set("#ffdcb4");
-    fillLight.intensity = 0.37;
-    hemiLight.color.set("#fff0dc");
-    hemiLight.groundColor.set("#ffe6cc");
-    hemiLight.intensity = 0.5;
-    roomMaterial.color.set("#fbf0e4");
-    scene.background.set("#eadbcd");
+    ambientLight.color.set("#a07850");
+    ambientLight.intensity = 0.32;
+    keyLight.color.set("#cc8844");
+    keyLight.intensity = 0.75;
+    fillLight.color.set("#996644");
+    fillLight.intensity = 0.25;
+    hemiLight.color.set("#99774d");
+    hemiLight.groundColor.set("#1a1408");
+    hemiLight.intensity = 0.3;
+    roomMaterial.color.set("#2a2018");
+    scene.background.set("#1e1810");
   } else if (name === "coolOffice") {
-    ambientLight.color.set("#e2edff");
-    ambientLight.intensity = 0.62;
-    keyLight.color.set("#b8d1ff");
-    keyLight.intensity = 1.24;
-    fillLight.color.set("#cde8ff");
-    fillLight.intensity = 0.43;
-    hemiLight.color.set("#f1f7ff");
-    hemiLight.groundColor.set("#dceaff");
-    hemiLight.intensity = 0.52;
-    roomMaterial.color.set("#f1f5fb");
-    scene.background.set("#d3dfea");
+    ambientLight.color.set("#8899cc");
+    ambientLight.intensity = 0.34;
+    keyLight.color.set("#7090cc");
+    keyLight.intensity = 0.8;
+    fillLight.color.set("#7798bb");
+    fillLight.intensity = 0.28;
+    hemiLight.color.set("#8899bb");
+    hemiLight.groundColor.set("#182030");
+    hemiLight.intensity = 0.32;
+    roomMaterial.color.set("#1a2438");
+    scene.background.set("#151e2c");
   } else {
-    ambientLight.color.set("#dbe5ef");
-    ambientLight.intensity = 0.5;
-    keyLight.color.set("#f2fff2");
-    keyLight.intensity = 0.95;
-    fillLight.color.set("#bfd4ff");
-    fillLight.intensity = 0.32;
-    hemiLight.color.set("#f0f5fb");
-    hemiLight.groundColor.set("#d3deed");
-    hemiLight.intensity = 0.45;
-    roomMaterial.color.set("#e8edf4");
-    scene.background.set("#c8d1de");
+    ambientLight.color.set("#8090a8");
+    ambientLight.intensity = 0.28;
+    keyLight.color.set("#99bb99");
+    keyLight.intensity = 0.6;
+    fillLight.color.set("#6680aa");
+    fillLight.intensity = 0.2;
+    hemiLight.color.set("#7888a0");
+    hemiLight.groundColor.set("#141c28");
+    hemiLight.intensity = 0.25;
+    roomMaterial.color.set("#182030");
+    scene.background.set("#121820");
   }
 }
 
