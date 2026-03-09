@@ -83,11 +83,18 @@ test("ui layout baselines", async ({ page }) => {
   await expect(page.locator("#shortcutOverlay")).toBeVisible();
   await expectSnapshot(page, page.locator("#shortcutOverlay .modal-dialog"), "quick-controls-layout.png");
 
-  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Close quick controls" }).click();
+  await expect(page.locator("#shortcutOverlay")).not.toBeVisible();
+
+  await page.getByRole("button", { name: "Help" }).click();
+  await expect(page.locator("#shortcutOverlay")).toBeVisible();
+  await page.locator("#shortcutOverlay").click({ position: { x: 12, y: 12 } });
   await expect(page.locator("#shortcutOverlay")).not.toBeVisible();
 
   await page.keyboard.press("?");
   await expect(page.locator("#shortcutOverlay")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#shortcutOverlay")).not.toBeVisible();
 });
 
 test("desktop shell stays contained at narrower widths", async ({ page }) => {

@@ -681,6 +681,13 @@ function toggleShortcutOverlay(forceOpen) {
   syncShellState();
 }
 
+function handleShortcutClose(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+  addButtonFeedback(ui.shortcutClose);
+  toggleShortcutOverlay(false);
+}
+
 function setPointerFromEvent(event) {
   const rect = renderer.domElement.getBoundingClientRect();
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -947,9 +954,20 @@ function bindUi() {
     toggleDrawer(false);
   });
 
-  ui.shortcutClose.addEventListener("click", () => {
-    addButtonFeedback(ui.shortcutClose);
-    toggleShortcutOverlay(false);
+  ui.shortcutClose.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    handleShortcutClose(event);
+  });
+
+  ui.shortcutClose.addEventListener("click", (event) => {
+    if (event.detail !== 0) {
+      return;
+    }
+
+    handleShortcutClose(event);
   });
 
   ui.openGuideFromDrawer.addEventListener("click", () => {
@@ -1064,6 +1082,12 @@ function bindUi() {
 
   window.addEventListener("pointerup", () => {
     axisDialState.active = false;
+  });
+
+  ui.shortcutOverlay.addEventListener("click", (event) => {
+    if (event.target === ui.shortcutOverlay) {
+      toggleShortcutOverlay(false);
+    }
   });
 
   window.addEventListener("pointerdown", (event) => {

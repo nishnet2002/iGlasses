@@ -170,7 +170,15 @@
                   <h2 id="shortcutDialogTitle" class="shortcut-title">Mouse and keyboard guide</h2>
                   <p id="shortcutDialogHint" class="text-body-secondary small mb-0 mt-2">Press <span class="shortcut-key">Esc</span> to return to the simulator.</p>
                 </div>
-                <button id="shortcutClose" class="btn-close shadow-none shortcut-close" type="button" aria-label="Close quick controls"></button>
+                <button
+                  id="shortcutClose"
+                  class="btn shortcut-close"
+                  type="button"
+                  data-bs-dismiss="modal"
+                  aria-label="Close quick controls"
+                >
+                  <span class="shortcut-close-label">Close</span>
+                </button>
               </div>
 
               <div class="shortcut-board shortcut-board-dialog">
@@ -211,6 +219,10 @@
                   </div>
                   <p class="ui-helper">Grab the axis dial and drag to set the correction angle.</p>
                 </article>
+              </div>
+
+              <div class="shortcut-footer">
+                <p class="shortcut-footer-copy ui-helper mb-0">Close this panel with <span class="shortcut-key">Esc</span>, <span class="shortcut-key">?</span>, or the close button.</p>
               </div>
             </div>
           </section>

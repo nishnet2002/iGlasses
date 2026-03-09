@@ -287,6 +287,11 @@ select {
     linear-gradient(145deg, rgba(255, 252, 247, 0.92), rgba(235, 228, 218, 0.78));
 }
 
+.drawer-panel-hero .summary-chip-list {
+  padding-top: 0.1rem;
+  border-top: 1px solid rgba(49, 79, 117, 0.08);
+}
+
 .drawer-summary-head,
 .drawer-panel-head,
 .lens-card-top,
@@ -388,6 +393,7 @@ select {
 .drawer-hint {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.32rem;
 }
 
@@ -409,6 +415,11 @@ select {
 
 .summary-card:last-child {
   grid-column: 1 / -1;
+}
+
+.summary-card {
+  min-height: 4.6rem;
+  align-content: start;
 }
 
 .summary-card strong,
@@ -524,11 +535,15 @@ select {
   box-shadow: 0 30px 80px rgba(23, 35, 52, 0.28);
 }
 
+.shortcut-dialog .modal-body {
+  display: grid;
+  gap: 1.25rem;
+}
+
 .shortcut-board {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
-  margin-top: 1.35rem;
 }
 
 .shortcut-card {
@@ -541,6 +556,14 @@ select {
 
 .shortcut-card-wide {
   grid-column: span 2;
+}
+
+.shortcut-dialog-header {
+  align-items: start;
+}
+
+.shortcut-dialog-header > div {
+  max-width: 31rem;
 }
 
 .shortcut-card h4 {
@@ -574,6 +597,24 @@ select {
 .combo-plus {
   font-weight: 800;
   color: rgba(52, 71, 95, 0.64);
+}
+
+.shortcut-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 3.4rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(53, 95, 146, 0.1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.shortcut-footer-copy {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .hud-float-card {
@@ -857,6 +898,55 @@ body.is-shortcut-open .hud-float-card.is-active {
   border: 0 !important;
 }
 
+.shortcut-close {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.25rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(39, 73, 117, 0.2);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-strong);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.shortcut-close::before,
+.shortcut-close::after {
+  content: "";
+  position: absolute;
+  width: 0.9rem;
+  height: 0.12rem;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  right: 0.95rem;
+  top: 50%;
+  transform-origin: center;
+}
+
+.shortcut-close::before {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.shortcut-close::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.shortcut-close:hover,
+.shortcut-close:focus-visible {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(39, 73, 117, 0.32);
+  box-shadow: 0 10px 24px rgba(28, 45, 65, 0.12);
+}
+
+.shortcut-close-label {
+  padding-right: 1rem;
+}
+
 .btn-close {
   opacity: 0.7;
 }
@@ -872,6 +962,7 @@ body.is-shortcut-open .hud-float-card.is-active {
 .lens-step:focus-visible,
 .axis-dial:focus-visible,
 .btn-close:focus-visible,
+.shortcut-close:focus-visible,
 .form-check-input:focus-visible,
 .form-range:focus-visible {
   outline: 3px solid rgba(53, 95, 146, 0.24);
@@ -944,6 +1035,10 @@ body.is-shortcut-open .hud-float-card.is-active {
   .axis-block-card {
     align-items: center;
   }
+
+  .shortcut-dialog .modal-body {
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 1080px) {
@@ -980,6 +1075,32 @@ body.is-shortcut-open .hud-float-card.is-active {
   .axis-dial {
     width: 4.8rem;
     min-width: 4.8rem;
+  }
+
+  .shortcut-modal-shell {
+    max-width: min(720px, calc(100vw - 1.5rem));
+  }
+
+  .shortcut-board {
+    grid-template-columns: 1fr;
+  }
+
+  .shortcut-card-wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 780px) {
+  .shortcut-dialog-header {
+    display: grid;
+  }
+
+  .shortcut-close {
+    justify-self: start;
+  }
+
+  .shortcut-footer {
+    padding: 0.75rem 0.85rem;
   }
 }
 
