@@ -12,7 +12,7 @@ async function stabilizeUi(page) {
       }
 
       .viewport-wrap {
-        background: #c9d0db !important;
+        background: #12171f !important;
       }
 
       *,
