@@ -120,13 +120,13 @@ npm run check:push
 
 That script runs the desktop/build validation, regenerates the production web output, and executes the UI snapshot regression suite.
 
-The UI regression run also refreshes [docs/ux-improvements.md](/c:/Users/Nishit/Desktop/repo/Glasses/docs/ux-improvements.md) with the current lightweight UX follow-up notes.
+The UI regression run also refreshes [docs/ux-improvements.md](./docs/ux-improvements.md) with the current lightweight UX follow-up notes.
 
 Figma-ready requirement artifacts live in:
 
-- [docs/figma/screen-specs.md](/c:/Users/Nishit/Desktop/repo/Glasses/docs/figma/screen-specs.md)
-- [docs/figma/component-tokens.md](/c:/Users/Nishit/Desktop/repo/Glasses/docs/figma/component-tokens.md)
-- [docs/figma/requirements-template.md](/c:/Users/Nishit/Desktop/repo/Glasses/docs/figma/requirements-template.md)
+- [docs/figma/screen-specs.md](./docs/figma/screen-specs.md)
+- [docs/figma/component-tokens.md](./docs/figma/component-tokens.md)
+- [docs/figma/requirements-template.md](./docs/figma/requirements-template.md)
 
 ### In-app controls
 

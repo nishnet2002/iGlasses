@@ -26,13 +26,13 @@ The end state should use the framework's inherent strengths:
 
 The current app is a desktop-first simulator built with:
 
-- static [index.html](/c:/Users/Nishit/Desktop/repo/Glasses/index.html)
-- custom [styles.css](/c:/Users/Nishit/Desktop/repo/Glasses/styles.css)
-- a single imperative [app.js](/c:/Users/Nishit/Desktop/repo/Glasses/app.js)
+- static [index.html](./index.html)
+- custom [styles.css](./styles.css)
+- a single imperative [app.js](./app.js)
 - Bootstrap behavior primitives loaded from local files
 - Three.js rendering logic mixed into the same runtime file as UI behavior
-- custom static build copy logic in [scripts/build-web.mjs](/c:/Users/Nishit/Desktop/repo/Glasses/scripts/build-web.mjs)
-- Electron loading either the static file or a dev server from [electron/main.js](/c:/Users/Nishit/Desktop/repo/Glasses/electron/main.js)
+- custom static build copy logic in [scripts/build-web.mjs](./scripts/build-web.mjs)
+- Electron loading either the static file or a dev server from [electron/main.js](./electron/main.js)
 
 This structure is workable for a small app, but it creates several scaling problems:
 
@@ -192,7 +192,7 @@ These principles should govern the entire migration:
 
 ### Principle 1: Separate simulator logic from UI logic before chasing perfect componentization
 
-Today, [app.js](/c:/Users/Nishit/Desktop/repo/Glasses/app.js) owns both.
+Today, [app.js](./app.js) owns both.
 That is the largest structural risk.
 The migration should first expose simulator operations as explicit functions and state inputs.
 
@@ -682,8 +682,8 @@ Target behavior:
 
 Tasks:
 
-- update [electron/main.js](/c:/Users/Nishit/Desktop/repo/Glasses/electron/main.js) dev URL assumptions
-- update [scripts/build-web.mjs](/c:/Users/Nishit/Desktop/repo/Glasses/scripts/build-web.mjs) or replace it with framework build output handling
+- update [electron/main.js](./electron/main.js) dev URL assumptions
+- update [scripts/build-web.mjs](./scripts/build-web.mjs) or replace it with framework build output handling
 - keep cache-busting strategy if still needed
 - verify `electron-builder` file includes point at new assets
 
